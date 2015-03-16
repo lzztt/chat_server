@@ -26,9 +26,13 @@ public:
     
     ssize_t recv(const int socket);
     
-    std::string get();
+    size_t getData(const char** ppBuffer);
+    void pop_front( off_t count);
+    bool empty();   
+    void clear();
     
 private:
+    
     class Buffer;
     std::deque<Buffer> buffers;
 };

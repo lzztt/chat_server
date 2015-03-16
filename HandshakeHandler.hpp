@@ -9,8 +9,9 @@
 #define	HANDSHAKEHANDLER_HPP
 
 #include "MessageHandler.hpp"
+#include "HandshakeParser.hpp"
 
-class HandshakeHandler: public MessageHandler
+class HandshakeHandler : public MessageHandler
 {
 public:
     explicit HandshakeHandler();
@@ -22,8 +23,11 @@ public:
     HandshakeHandler& operator=(HandshakeHandler&& other);
 
     ~HandshakeHandler();
-    
+
     void process(SocketInStream& in, SocketOutStream& out);
+
+private:
+    HandshakeParser paser;
 };
 
 #endif	/* HANDSHAKEHANDLER_HPP */

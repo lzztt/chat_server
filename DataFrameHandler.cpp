@@ -6,6 +6,7 @@
  */
 
 #include "DataFrameHandler.hpp"
+#include "Log.hpp"
 
 DataFrameHandler::DataFrameHandler( )
 {
@@ -25,5 +26,6 @@ DataFrameHandler::~DataFrameHandler( )
 
 void DataFrameHandler::process(SocketInStream& in, SocketOutStream& out)
 {
-    out.add( in.get( ) );
+    DEBUG << "processing";
+    //out.add( in.get( ) );
 }

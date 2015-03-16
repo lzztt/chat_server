@@ -77,24 +77,34 @@ public:
 
 SocketOutStream::SocketOutStream( )
 {
+    DEBUG << "created";
 }
 
 SocketOutStream::SocketOutStream( SocketOutStream&& other )
 {
+    DEBUG << "moved from " << &other;
 }
 
 SocketOutStream& SocketOutStream::operator=(SocketOutStream&& other)
 {
+    DEBUG << "moved from " << &other;
+    if ( this != &other )
+    {
+        buffers = std::move( other.buffers );
+    }
+    return *this;
 }
 
 SocketOutStream::~SocketOutStream( )
 {
+    DEBUG << "destroyed";
 }
 
 ssize_t SocketOutStream::send( const int socket )
-{
+{    
     if ( buffers.empty( ) )
     {
+        DEBUG << "out buffer is empty, nothing to send";
         return 0;
     }
 
@@ -199,16 +209,19 @@ ssize_t SocketOutStream::send( const int socket )
         }
     }
 
+    DEBUG << "send " << nSend << " bytes";
     return nSend;
 }
 
 void SocketOutStream::add( std::string&& str )
 {
+    DEBUG << "add string (" << "bytes=" << str.size() << ")";
     buffers.push_back( Buffer( std::move( str ) ) );
 }
 
 void SocketOutStream::add( int fd )
 {
+    DEBUG << "add file (fd=" << fd << ")";
     buffers.push_back( Buffer( fd ) );
 }
 

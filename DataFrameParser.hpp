@@ -8,6 +8,9 @@
 #ifndef DATAFRAMEPARSER_HPP
 #define	DATAFRAMEPARSER_HPP
 
+#include "SocketInStream.hpp"
+
+
 class DataFrameParser
 {
 public:
@@ -20,6 +23,8 @@ public:
     DataFrameParser& operator=(DataFrameParser&& other);
 
     ~DataFrameParser();
+    
+    void parse(SocketInStream& in);
 };
 
 #endif	/* DATAFRAMEPARSER_HPP */

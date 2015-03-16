@@ -22,16 +22,16 @@ public:
     Buffer( )
     {
         DEBUG << "buffer created";
-        if( pool.empty() )
+        if ( pool.empty( ) )
         {
             pBegin = pEnd = pData = new char[BUFSIZE];
-            if( !pData ) ERROR << "failed to allocate " << BUFSIZE << " bytes as buffer memory ";
+            if ( !pData ) ERROR << "failed to allocate " << BUFSIZE << " bytes as buffer memory ";
         }
         else
         {
             pBegin = pEnd = pData = pool.front( ).release( );
             pool.pop_front( );
-        }               
+        }
     }
 
     Buffer( const Buffer& other ) = delete;
@@ -73,6 +73,16 @@ public:
                 delete[] pData;
             }
         }
+    }
+
+    size_t getDataSize( )
+    {
+        return pEnd - pBegin;
+    }
+
+    size_t getLeftCapacity( )
+    {
+        return pData + BUFSIZE - pEnd;
     }
 
     void pop_front( off_t count )
@@ -119,18 +129,27 @@ std::deque<std::unique_ptr<char[] >> SocketInStream::Buffer::pool = std::deque<s
 
 SocketInStream::SocketInStream( )
 {
+    DEBUG << "created";
 }
 
 SocketInStream::SocketInStream( SocketInStream&& other )
 {
+    DEBUG << "moved from " << &other;
 }
 
 SocketInStream& SocketInStream::operator=(SocketInStream&& other)
 {
+    DEBUG << "moved from " << &other;
+    if ( this != &other )
+    {
+        buffers = std::move( other.buffers );
+    }
+    return *this;
 }
 
 SocketInStream::~SocketInStream( )
 {
+    DEBUG << "destroyed";
 }
 
 ssize_t SocketInStream::recv( const int socket )
@@ -194,6 +213,7 @@ ssize_t SocketInStream::recv( const int socket )
     return nRecv;
 }
 
+/*
 std::string SocketInStream::get( )
 {
     std::string msg;
@@ -207,4 +227,48 @@ std::string SocketInStream::get( )
     buffers.clear();
 
     return std::move( msg );
+}
+ */
+
+
+size_t SocketInStream::getData( const char** ppBuffer )
+{
+    if ( !buffers.empty( ) )
+    {
+        return buffers.front( ).getReadableBuffer( ppBuffer );
+    }
+    else
+    {
+        *ppBuffer == nullptr;
+        return 0;
+    }
+}
+
+void SocketInStream::pop_front( off_t count )
+{
+    size_t size = 0;
+    while ( count > 0 && !buffers.empty( ) )
+    {
+        size = buffers.front( ).getDataSize( );
+        if ( size <= count )
+        {
+            buffers.pop_front( );
+            count -= size;
+        }
+        else
+        {
+            buffers.front( ).pop_front( count );
+            count = 0;
+        }
+    }
+}
+
+bool SocketInStream::empty( )
+{
+    return buffers.empty( );
+}
+
+void SocketInStream::clear( )
+{
+    buffers.clear( );
 }

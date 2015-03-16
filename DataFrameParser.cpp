@@ -23,3 +23,7 @@ DataFrameParser::~DataFrameParser( )
 {
 }
 
+void DataFrameParser::parse( SocketInStream& in )
+{
+
+}

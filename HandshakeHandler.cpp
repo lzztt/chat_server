@@ -6,6 +6,7 @@
  */
 
 #include "HandshakeHandler.hpp"
+#include "Log.hpp"
 
 HandshakeHandler::HandshakeHandler( )
 {
@@ -23,7 +24,9 @@ HandshakeHandler::~HandshakeHandler( )
 {
 }
 
-void HandshakeHandler::process(SocketInStream& in, SocketOutStream& out)
+void HandshakeHandler::process( SocketInStream& in, SocketOutStream& out )
 {
-    out.add( in.get( ) );
+    DEBUG << "processing";
+    paser.parse( in );
+    //out.add( in.get( ) );
 }

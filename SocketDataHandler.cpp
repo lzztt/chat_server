@@ -102,11 +102,7 @@ void SocketDataHandler::onError( const Event& ev )
         EventLoop::getInstance( ).unregisterEvent( ev );
     }
 
-    auto iter = streams.find( socket );
-    if ( iter != streams.end( ) )
-    {
-        streams.erase( socket );
-    }
+    streams.erase( socket );
 }
 
 void SocketDataHandler::onRecv( const Event& ev )

@@ -9,8 +9,9 @@
 #define	DATAFRAMEHANDLER_HPP
 
 #include "MessageHandler.hpp"
+#include "DataFrameParser.hpp"
 
-class DataFrameHandler: public MessageHandler
+class DataFrameHandler : public MessageHandler
 {
 public:
     explicit DataFrameHandler();
@@ -22,8 +23,11 @@ public:
     DataFrameHandler& operator=(DataFrameHandler&& other);
 
     ~DataFrameHandler();
-    
+
     void process(SocketInStream& in, SocketOutStream& out);
+
+private:
+    DataFrameParser paser;
 };
 
 #endif	/* DATAFRAMEHANDLER_HPP */
