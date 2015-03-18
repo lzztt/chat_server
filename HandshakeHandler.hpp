@@ -27,7 +27,13 @@ public:
     void process(SocketInStream& in, SocketOutStream& out);
 
 private:
-    HandshakeParser paser;
+    void myHandleSwitchingProtocols(SocketOutStream& out);
+    void myHandleBadRequest(SocketOutStream& out);
+    void myHandleMethodNotAllowed(SocketOutStream& out);
+    void myHandleUpgradeRequired(SocketOutStream& out);
+    void myHandleHttpVersionNotSupported(SocketOutStream& out);
+    
+    HandshakeParser myParser;
 };
 
 #endif	/* HANDSHAKEHANDLER_HPP */

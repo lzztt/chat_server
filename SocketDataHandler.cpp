@@ -120,9 +120,12 @@ void SocketDataHandler::onRecv( const Event& ev )
     if ( count > 0 )
     {
         iter->second->process( );
-        if ( iter->second->out.send( socket ) < 0 )
+        if ( !iter->second->out.empty( ) )
         {
-            onError( ev );
+            if ( iter->second->out.send( socket ) < 0 )
+            {
+                onError( ev );
+            }
         }
     }
     else if ( count < 0 )

@@ -27,7 +27,10 @@ public:
     ssize_t send(const int socket);
     
     void add( std::string&& str );
-    void add( int fd );    
+    void add( int fd );
+    
+    bool empty();   
+    void clear();
 
 private:
     class Buffer;

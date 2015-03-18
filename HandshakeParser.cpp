@@ -34,7 +34,7 @@ HandshakeParser::Status HandshakeParser::parse( SocketInStream& in )
     size_t nLeft = 0, count = 0;
     const char *pData = nullptr, *pBegin = nullptr, *pEnd = nullptr;
     char* pUpper = nullptr;
-    
+
     while ( !in.empty( ) && myStatus == Status::PARSING )
     {
         nLeft = count = in.getData( &pData );
@@ -56,7 +56,8 @@ HandshakeParser::Status HandshakeParser::parse( SocketInStream& in )
                     else
                     {
                         // 400 bad request
-                        myStatus = Status::BAD_REQUEST;
+                        ERROR << "method not allowed";
+                        myStatus = Status::METHOD_NOT_ALLOWED;
                         in.clear( );
                         nLeft = 0;
                     }
@@ -69,6 +70,7 @@ HandshakeParser::Status HandshakeParser::parse( SocketInStream& in )
                     if ( *pData == '\r' || *pData == '\n' )
                     {
                         // 400 bad request
+                        ERROR << "bad request: unexpected end of line";
                         myStatus = Status::BAD_REQUEST;
                         in.clear( );
                         nLeft = 0;
@@ -90,15 +92,29 @@ HandshakeParser::Status HandshakeParser::parse( SocketInStream& in )
                     if ( *pData == '\r' || *pData == '\n' )
                     {
                         // 400 bad request
+                        ERROR << "bad request: unexpected end of line";
                         myStatus = Status::BAD_REQUEST;
                         in.clear( );
                         nLeft = 0;
+                        break;
                     }
                 }
 
                 if ( myStatus == Status::PARSING )
                 {
-                    myUri.append( pBegin, pData - pBegin );
+                    if ( pData == pBegin )
+                    {
+                        // empty URI
+                        // 400 bad request
+                        ERROR << "bad request: empty URI";
+                        myStatus = Status::BAD_REQUEST;
+                        in.clear( );
+                        nLeft = 0;
+                    }
+                    else
+                    {
+                        myUri.append( pBegin, pData - pBegin );
+                    }
                 }
 
                 if ( nLeft > 0 )
@@ -122,8 +138,9 @@ HandshakeParser::Status HandshakeParser::parse( SocketInStream& in )
                     if ( myHttpVersion != "HTTP/1.1" )
                     {
                         // 400 bad request
-                        // log bad http version
-                        myStatus = Status::BAD_REQUEST;
+                        // log bad HTTP version
+                        ERROR << "HTTP version not supported";
+                        myStatus = Status::HTTP_VERSION_NOT_SUPPORTED;
                         in.clear( );
                         nLeft = 0;
                     }
@@ -188,6 +205,7 @@ HandshakeParser::Status HandshakeParser::parse( SocketInStream& in )
                         if ( *pData == '\r' || *pData == '\n' )
                         {
                             // 400 bad request
+                            ERROR << "bad request: unexpected end of line";
                             myStatus = Status::BAD_REQUEST;
                             in.clear( );
                             nLeft = 0;
@@ -237,6 +255,7 @@ HandshakeParser::Status HandshakeParser::parse( SocketInStream& in )
                     if ( *pData == '\r' || *pData == '\n' )
                     {
                         // 400 bad request
+                        ERROR << "bad request: unexpected end of line";
                         myStatus = Status::BAD_REQUEST;
                         in.clear( );
                         nLeft = 0;
@@ -324,6 +343,9 @@ HandshakeParser::Status HandshakeParser::parse( SocketInStream& in )
                 in.pop_front( count - nLeft );
                 nLeft = 0;
                 break;
+
+            default:
+                ERROR << "unsupported parsing state";
             }
         }
 
@@ -340,29 +362,102 @@ HandshakeParser::Status HandshakeParser::parse( SocketInStream& in )
 
     if ( myState == State::END )
     {
-        // validate |Host| header
-
-        // validate |Upgrade| header
-
-        // validate |Connection| header
-
-        // validate |Origin| header
-
-        // validate |Sec-WebSocket-Version| header
-
-        // validate |Sec-WebSocket-Key| header
-
-        // check optional |Sec-WebSocket-Protocol| header
-
-        // check optional |Sec-WebSocket-Extensions| header
-
-        myStatus = Status::OK;
-        INFO << "URI:\t" << myUri;
-        for ( auto iter = myHeaders.begin( ), iterE = myHeaders.end( ); iter != iterE; ++iter )
-        {
-            INFO << "HEADER\t" << iter->first << "\t:\t" << iter->second;
-        }
+        myStatus = myValidateHeaders( );
     }
 
     return myStatus;
+}
+
+HandshakeParser::Status HandshakeParser::myValidateHeaders( )
+{
+    // DEBUG
+    for(auto iter = myHeaders.begin(), iterE = myHeaders.end(); iter != iterE; ++iter)
+    {
+        INFO << "HDR: " << iter->first << " : " << iter->second;
+    }
+    
+    // validate |Host| header
+    auto iter = myHeaders.find( "HOST" );
+    if ( iter == myHeaders.end( ) )
+    {
+        ERROR << "|Host| header not found";
+        return Status::BAD_REQUEST;
+    }
+
+    // validate |Upgrade| header
+    iter = myHeaders.find( "UPGRADE" );
+    if ( iter == myHeaders.end( ) )
+    {
+        ERROR << "|Upgrade| header not found";
+        return Status::BAD_REQUEST;
+    }
+    else
+    {
+        if ( iter->second.find( "websocket" ) == iter->second.npos )
+        {
+            ERROR << "|Upgrade| header does not contains \"websocket\"";
+            return Status::BAD_REQUEST;
+        }
+    }
+
+    // validate |Connection| header
+    iter = myHeaders.find( "CONNECTION" );
+    if ( iter == myHeaders.end( ) )
+    {
+        ERROR << "|Connection| header not found";
+        return Status::BAD_REQUEST;
+    }
+    else
+    {
+        if ( iter->second.find( "Upgrade" ) == iter->second.npos )
+        {
+            ERROR << "|Connection| header does not contains \"Upgrade\"";
+            return Status::BAD_REQUEST;
+        }
+    }
+
+    // validate optional |Origin| header
+
+    // validate |Sec-WebSocket-Version| header
+    iter = myHeaders.find( "SEC-WEBSOCKET-VERSION" );
+    if ( iter == myHeaders.end( ) )
+    {
+        ERROR << "|Sec-WebSocket-Version| header not found";
+        return Status::BAD_REQUEST;
+    }
+    else
+    {
+        if ( iter->second != "13" )
+        {
+            ERROR << "|Sec-WebSocket-Version| header is not equal to 13";
+            return Status::BAD_REQUEST;
+        }
+    }
+
+    // validate |Sec-WebSocket-Key| header
+    iter = myHeaders.find( "SEC-WEBSOCKET-KEY" );
+    if ( iter == myHeaders.end( ) )
+    {
+        ERROR << "|Sec-WebSocket-Key| header not found";
+        return Status::BAD_REQUEST;
+    }
+    else
+    {
+        // 16 bytes source base64 encoded to 24 bytes
+        if ( iter->second.length( ) != 24 )
+        {
+            ERROR << "|Sec-WebSocket-Key| header is not 16 bytes";
+            return Status::BAD_REQUEST;
+        }
+        else
+        {
+            myWebSocketKey = iter->second;
+        }
+    }
+
+    // check optional |Sec-WebSocket-Protocol| header
+
+    // check optional |Sec-WebSocket-Extensions| header
+
+    return Status::SWITCHING_PROTOCOLS;
 }

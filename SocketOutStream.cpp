@@ -225,4 +225,12 @@ void SocketOutStream::add( int fd )
     buffers.push_back( Buffer( fd ) );
 }
 
+bool SocketOutStream::empty( )
+{
+    return buffers.empty( );
+}
 
+void SocketOutStream::clear( )
+{
+    buffers.clear( );
+}
