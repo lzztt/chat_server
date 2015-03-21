@@ -32,7 +32,7 @@ void sha1_finish( sha1_context *ctx, uint8 digest[20] );
 #include <string>
 namespace sha1
 {
-    std::string&& encode(const std::string& text);
+    void hash( unsigned char* input, size_t length, unsigned char* output );
 }
 
 #endif /* sha1.h */

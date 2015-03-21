@@ -317,9 +317,12 @@ void sha1_finish( sha1_context *ctx, uint8 digest[20] )
 
 namespace sha1
 {
-    std::string&& encode(const std::string& text)
+
+    void hash( unsigned char* input, size_t length, unsigned char* output )
     {
-        std::string ret;
-        return std::move(ret);
+        sha1_context ctx;
+        sha1_starts( &ctx );
+        sha1_update( &ctx, input, length );
+        sha1_finish( &ctx, output );
     }
 }

@@ -104,8 +104,12 @@ int Base64decode(char * plain_dst, const char *coded_src);
 
 namespace base64
 {
-std::string&& encode(const std::string& text);
-std::string&& decode(const std::string& text);
+    size_t encode_len( size_t len );
+    size_t encode( const char *input, size_t len, char *output );
+    size_t decode_len( const char *input, size_t len );
+    size_t decode( const char *input, size_t len, char *output );
+    std::string encode(const std::string& text);
+    std::string decode(const std::string& text);
 }
 
 

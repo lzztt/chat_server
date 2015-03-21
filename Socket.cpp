@@ -7,6 +7,7 @@
 #include <sys/epoll.h>
 #include <sys/socket.h>
 #include <sys/un.h>
+#include <netinet/tcp.h>
 #include <netdb.h>
 #include <unistd.h>
 #include <cstring>
@@ -275,6 +276,14 @@ void Socket::onConnect( const Event& ev )
 
         if ( addrClient.sa_family == AF_INET || addrClient.sa_family == AF_INET6 )
         {
+            int nodelay = 1;
+            if ( ::setsockopt( client, SOL_TCP, TCP_NODELAY, (const void *) &nodelay, sizeof nodelay ) != 0 )
+            {
+                std::string error = std::strerror( errno );
+                ::close( client );
+                throw Exception( error );
+            }
+
             std::memset( host, 0, HOSTSIZE );
             std::memset( service, 0, SERVSIZE );
 
@@ -292,7 +301,7 @@ void Socket::onConnect( const Event& ev )
             }
         }
 
-        if ( !handler.add(client) )
+        if ( !handler.add( client ) )
         {
             // DEBUG
             DEBUG << "DISCONNECT: client @ " << socket;

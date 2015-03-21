@@ -68,7 +68,20 @@ void HandshakeHandler::myHandleSwitchingProtocols( SocketOutStream& out )
                                         "Upgrade: websocket\r\n"
                                         "Connection: Upgrade\r\n"
                                         "Sec-WebSocket-Accept: " );
-    response.append( base64::encode( sha1::encode( key ) ) ).append( "\r\n\r\n" );
+
+#define SHA1_LEN 20
+#define BASE64_LEN 28
+
+    unsigned char sha1sum[SHA1_LEN];
+    sha1::hash( (unsigned char*) key.c_str( ), key.size( ), sha1sum );
+
+    char base64[BASE64_LEN];
+    size_t count = base64::encode( (const char*) sha1sum, 20, base64 );
+    if ( count != BASE64_LEN )
+    {
+        ERROR << "expecting base64-encoding Sec-WebSocket-Accept hash string has length " << BASE64_LEN << " get " << count;
+    }
+    response.append( base64, BASE64_LEN ).append( "\r\n\r\n" );
     out.add( std::move( response ) );
 }
 
