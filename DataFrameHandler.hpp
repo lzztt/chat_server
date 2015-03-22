@@ -27,6 +27,16 @@ public:
     virtual bool process(SocketInStream& in, SocketOutStream& out);
 
 private:
+    void myHandleTextMessage(SocketOutStream& out);
+    void myHandleBinaryMessage(SocketOutStream& out);
+    void myHandleFragmentFrame(SocketOutStream& out);
+    void myHandleUnrealsedData(SocketOutStream& out);
+    void myHandleBadMaskBit(SocketOutStream& out);
+    void myHandleBadPayloadLength(SocketOutStream& out);
+
+    void mySendCloseFrame(SocketOutStream& out);
+    void mySendPongFrame(SocketOutStream& out);
+
     DataFrameParser myParser;
 };
 

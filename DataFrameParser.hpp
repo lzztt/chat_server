@@ -11,6 +11,13 @@
 #include <memory>
 #include "SocketInStream.hpp"
 
+#define WS_OPCODE_CONTINUATION 0
+#define WS_OPCODE_TEXT         1
+#define WS_OPCODE_BINARY       2
+#define WS_OPCODE_CLOSE        8
+#define WS_OPCODE_PING         9
+#define WS_OPCODE_PONG         10
+
 class DataFrameParser
 {
 public:
@@ -26,22 +33,12 @@ public:
         unsigned int payload : 7;
     };
 
-    enum class Opcode : int
-    {
-        CONTINUATION = 0,
-        TEXT = 1,
-        BINARY = 2,
-        CLOSE = 8,
-        PING = 9,
-        PONG = 10
-    };
-
     enum class Status : int
     {
         PARSING,
         SUCCESS,
         UNRELEASED_DATA,
-        MISSING_MASK_BIT,
+        BAD_MASK_BIT,
         BAD_PAYLOAD_LENGTH
     };
 
@@ -58,6 +55,12 @@ public:
     Status parse(SocketInStream& in);
     
     size_t getData(std::unique_ptr<char[]>& pData);
+    
+    Header& getHeader()
+    {
+        return myHeader;
+    }
+
 
 private:
 
@@ -69,6 +72,7 @@ private:
         DATA,
         END
     };
+    
     State myState;
     Header myHeader;
     size_t myPayloadLength;

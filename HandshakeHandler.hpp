@@ -32,7 +32,7 @@ private:
     void myHandleMethodNotAllowed(SocketOutStream& out);
     void myHandleUpgradeRequired(SocketOutStream& out);
     void myHandleHttpVersionNotSupported(SocketOutStream& out);
-    
+
     HandshakeParser myParser;
 };
 

@@ -173,7 +173,7 @@ DataFrameParser::Status DataFrameParser::parse( SocketInStream& in )
                 ERROR << "missing mask bit";
                 myState = State::END;
                 in.clear( );
-                return Status::MISSING_MASK_BIT;
+                return Status::BAD_MASK_BIT;
             }
         }
         else

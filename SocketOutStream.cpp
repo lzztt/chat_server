@@ -32,7 +32,7 @@ public:
     fd( 0 )
     {
         DEBUG << "buffer created with string";
-        this->str = std::unique_ptr<std::string>(new std::string( str ));
+        this->str = new std::string( std::move( str ) );
     }
 
     Buffer( const Buffer& other ) = delete;
@@ -68,10 +68,11 @@ public:
     ~Buffer( )
     {
         if ( fd ) ::close( fd );
+        if ( str ) delete str;
     }
 
     off_t offset;
-    std::unique_ptr<std::string> str;
+    std::string* str;
     int fd;
 };
 
@@ -101,7 +102,7 @@ SocketOutStream::~SocketOutStream( )
 }
 
 ssize_t SocketOutStream::send( const int socket )
-{    
+{
     if ( buffers.empty( ) )
     {
         DEBUG << "out buffer is empty, nothing to send";
@@ -215,7 +216,7 @@ ssize_t SocketOutStream::send( const int socket )
 
 void SocketOutStream::add( std::string&& str )
 {
-    DEBUG << "add string (" << "bytes=" << str.size() << ")";
+    DEBUG << "add string (" << "bytes=" << str.size( ) << ")";
     buffers.push_back( Buffer( std::move( str ) ) );
 }
 
