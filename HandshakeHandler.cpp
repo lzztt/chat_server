@@ -26,7 +26,7 @@ HandshakeHandler::~HandshakeHandler( )
 {
 }
 
-void HandshakeHandler::process( SocketInStream& in, SocketOutStream& out )
+bool HandshakeHandler::process( SocketInStream& in, SocketOutStream& out )
 {
     DEBUG << "processing";
     HandshakeParser::Status status = myParser.parse( in );
@@ -34,6 +34,7 @@ void HandshakeHandler::process( SocketInStream& in, SocketOutStream& out )
     {
     case HandshakeParser::Status::SWITCHING_PROTOCOLS:
         myHandleSwitchingProtocols( out );
+        return true;
         break;
 
     case HandshakeParser::Status::BAD_REQUEST:
@@ -58,6 +59,8 @@ void HandshakeHandler::process( SocketInStream& in, SocketOutStream& out )
     default:
         ERROR << "unsupported status";
     }
+    
+    return false;
 }
 
 void HandshakeHandler::myHandleSwitchingProtocols( SocketOutStream& out )

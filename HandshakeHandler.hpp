@@ -22,9 +22,9 @@ public:
     HandshakeHandler(HandshakeHandler&& other);
     HandshakeHandler& operator=(HandshakeHandler&& other);
 
-    ~HandshakeHandler();
+    virtual ~HandshakeHandler();
 
-    void process(SocketInStream& in, SocketOutStream& out);
+    virtual bool process(SocketInStream& in, SocketOutStream& out);
 
 private:
     void myHandleSwitchingProtocols(SocketOutStream& out);

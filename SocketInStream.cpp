@@ -127,7 +127,8 @@ private:
 // initialize static pool
 std::deque<std::unique_ptr<char[] >> SocketInStream::Buffer::pool = std::deque<std::unique_ptr<char[] >>();
 
-SocketInStream::SocketInStream( )
+SocketInStream::SocketInStream( ) :
+mySize( 0 )
 {
     DEBUG << "created";
 }
@@ -156,7 +157,7 @@ ssize_t SocketInStream::recv( const int socket )
 {
     char* pData = nullptr;
     ssize_t nRecv = 0, count = 0;
-    size_t bufSize = 0, nLeft = 0;
+    size_t bufSize = 0, nLeft = 0, nWriten = 0;
 
     do
     {
@@ -202,34 +203,18 @@ ssize_t SocketInStream::recv( const int socket )
         // read some data, either reached data end or buffer end
         if ( nLeft < bufSize )
         {
-            DEBUG << "recv " << bufSize - nLeft << " bytes";
-            nRecv += (bufSize - nLeft);
-            buf.push_back( bufSize - nLeft );
+            nWriten = bufSize - nLeft;
+            DEBUG << "recv " << nWriten << " bytes";
+            nRecv += nWriten;
+            buf.push_back( nWriten );
             buffers.push_back( std::move( buf ) );
+            mySize += nWriten;
         }
     }
     while ( nLeft == 0 );
 
     return nRecv;
 }
-
-/*
-std::string SocketInStream::get( )
-{
-    std::string msg;
-    size_t count = 0;
-    const char* pData = nullptr;
-    for ( auto& b : buffers )
-    {
-        count = b.getReadableBuffer( &pData );
-        msg.append( pData, count );
-    }
-    buffers.clear();
-
-    return std::move( msg );
-}
- */
-
 
 size_t SocketInStream::getData( const char** ppBuffer )
 {
@@ -246,8 +231,18 @@ size_t SocketInStream::getData( const char** ppBuffer )
 
 void SocketInStream::pop_front( off_t count )
 {
+    if ( count >= mySize )
+    {
+        buffers.clear( );
+        mySize = 0;
+        return;
+    }
+
+    // adjust size
+    mySize -= count;
+    // pop_front buffer
     size_t size = 0;
-    while ( count > 0 && !buffers.empty( ) )
+    while ( count > 0 )
     {
         size = buffers.front( ).getDataSize( );
         if ( size <= count )
@@ -263,12 +258,84 @@ void SocketInStream::pop_front( off_t count )
     }
 }
 
-bool SocketInStream::empty( )
-{
-    return buffers.empty( );
-}
-
 void SocketInStream::clear( )
 {
     buffers.clear( );
+    mySize = 0;
+}
+
+bool SocketInStream::extract( char* buf, size_t count )
+{
+    if ( count > mySize )
+    {
+        return false;
+    }
+
+    // reduce the size
+    mySize -= count;
+
+    // extract data
+    const char* pData = nullptr;
+    size_t size = 0;
+    while ( count > 0 )
+    {
+        size = buffers.front( ).getReadableBuffer( &pData );
+        if ( size <= count )
+        {
+            std::memcpy( buf, pData, size );
+            buffers.pop_front( );
+            count -= size;
+        }
+        else
+        {
+            std::memcpy( buf, pData, count );
+            buffers.front( ).pop_front( count );
+            count = 0;
+        }
+    }
+
+    return true;
+}
+
+bool SocketInStream::maskExtract( char* buf, size_t count, const char* mask, size_t maskCount, size_t maskStart )
+{
+    if ( count > mySize )
+    {
+        return false;
+    }
+
+    // reduce the size
+    mySize -= count;
+
+    // extract data
+    const char* pData = nullptr;
+    size_t size = 0;
+    while ( count > 0 )
+    {
+        size = buffers.front( ).getReadableBuffer( &pData );
+        if ( size <= count )
+        {
+            int i = maskStart, n = size + maskStart;
+            for (; i < n; ++i, ++pData, ++buf )
+            {
+                *buf = (*pData ^ mask[i % maskCount]);
+            }
+            maskStart = i % maskCount;
+            buffers.pop_front( );
+            count -= size;
+        }
+        else
+        {
+            int i = maskStart, n = count + maskStart;
+            for (; i < n; ++i, ++pData, ++buf )
+            {
+                *buf = (*pData ^ mask[i % maskCount]);
+            }
+            maskStart = i % maskCount;
+            buffers.front( ).pop_front( count );
+            count = 0;
+        }
+    }
+
+    return true;
 }

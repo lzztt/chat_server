@@ -22,12 +22,12 @@ public:
     DataFrameHandler(DataFrameHandler&& other);
     DataFrameHandler& operator=(DataFrameHandler&& other);
 
-    ~DataFrameHandler();
+    virtual ~DataFrameHandler();
 
-    void process(SocketInStream& in, SocketOutStream& out);
+    virtual bool process(SocketInStream& in, SocketOutStream& out);
 
 private:
-    DataFrameParser paser;
+    DataFrameParser myParser;
 };
 
 #endif	/* DATAFRAMEHANDLER_HPP */

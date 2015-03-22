@@ -38,9 +38,10 @@ HandshakeParser::Status HandshakeParser::parse( SocketInStream& in )
     while ( !in.empty( ) && myStatus == Status::PARSING )
     {
         nLeft = count = in.getData( &pData );
+        INFO << "in.getData = " << count;
         DEBUG << std::string( pData, count );
 
-        while ( nLeft > 0 )
+        while ( nLeft > 0 && myState < State::END )
         {
             switch ( myState )
             {
@@ -333,15 +334,10 @@ HandshakeParser::Status HandshakeParser::parse( SocketInStream& in )
             case State::ALMOST_END:
                 // skip '\n'
                 --nLeft;
-
                 myState = State::END;
-                in.pop_front( count - nLeft );
-                nLeft = 0;
                 break;
 
             case State::END:
-                in.pop_front( count - nLeft );
-                nLeft = 0;
                 break;
 
             default:
@@ -351,11 +347,14 @@ HandshakeParser::Status HandshakeParser::parse( SocketInStream& in )
 
         if ( myState == State::END )
         {
-            break;
+            INFO << "in.pop_front = " << count - nLeft;
+            in.pop_front( count - nLeft );
+            nLeft = 0;
         }
         else
         {
             // continue to load next buffer
+            INFO << "in.pop_front = " << count;
             in.pop_front( count );
         }
     }
@@ -371,11 +370,11 @@ HandshakeParser::Status HandshakeParser::parse( SocketInStream& in )
 HandshakeParser::Status HandshakeParser::myValidateHeaders( )
 {
     // DEBUG
-    for(auto iter = myHeaders.begin(), iterE = myHeaders.end(); iter != iterE; ++iter)
+    for ( auto iter = myHeaders.begin( ), iterE = myHeaders.end( ); iter != iterE; ++iter )
     {
         INFO << "HDR: " << iter->first << " : " << iter->second;
     }
-    
+
     // validate |Host| header
     auto iter = myHeaders.find( "HOST" );
     if ( iter == myHeaders.end( ) )

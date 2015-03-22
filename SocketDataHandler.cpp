@@ -15,29 +15,73 @@
 #include "SocketOutStream.hpp"
 #include "MessageHandler.hpp"
 #include "HandshakeHandler.hpp"
+#include "DataFrameHandler.hpp"
 
 class SocketDataHandler::Stream
 {
 public:
 
-    Stream( )
+    enum class State : int
     {
-        handler = std::unique_ptr<MessageHandler>(dynamic_cast<MessageHandler*> (new HandshakeHandler( )));
+        CONNECTING,
+        OPEN,
+        CLOSING,
+        CLOSED
+    };
+
+    Stream( ) :
+    state( State::CONNECTING ),
+    handler( dynamic_cast<MessageHandler*> (new HandshakeHandler( )) )
+    {
+        DEBUG << "created";
     }
 
     ~Stream( )
     {
         DEBUG << "destroyed";
+        if ( handler ) delete handler;
     }
 
     void process( )
     {
-        handler->process( in, out );
+        // do not process further message in CLOSING state
+        if ( state == State::CLOSING )
+        {
+            state = State::CLOSED;
+            return;
+        }
+
+        if ( handler->process( in, out ) )
+        {
+            // success
+            // don't need to handle SUCCESS status for OPEN
+            if ( state == State::CONNECTING )
+            {
+                // OPENING: handshake finished
+                state = State::OPEN;
+                delete handler;
+                handler = dynamic_cast<MessageHandler*> (new DataFrameHandler( ));
+                return;
+            }
+        }
+        else
+        {
+            // error
+            // don't need to handle ERROR status for CONNECTING
+            if ( state == State::OPEN )
+            {
+                // CONNECTED: got a closing frame or an invalid frame
+                // response a close frame
+                state = State::CLOSING;
+                return;
+            }
+        }
     }
 
     SocketInStream in;
     SocketOutStream out;
-    std::unique_ptr<MessageHandler> handler;
+    State state;
+    MessageHandler* handler;
 };
 
 SocketDataHandler::SocketDataHandler( )
@@ -115,6 +159,15 @@ void SocketDataHandler::onRecv( const Event& ev )
     {
         iter = streams.emplace( socket, std::unique_ptr<Stream>(new Stream( )) ).first;
     }
+
+    if ( iter->second->state == Stream::State::CLOSING || iter->second->state == Stream::State::CLOSED )
+    {
+        // closing, do not process any further message, just close connection
+        onError( ev );
+        return;
+    }
+
+    // read data
     ssize_t count = iter->second->in.recv( socket );
 
     if ( count > 0 )

@@ -24,7 +24,7 @@ public:
 
     virtual ~MessageHandler();
 
-    virtual void process(SocketInStream& in, SocketOutStream& out) = 0;
+    virtual bool process(SocketInStream& in, SocketOutStream& out) = 0;
 };
 
 #endif	/* MESSAGEHANDLER_HPP */
