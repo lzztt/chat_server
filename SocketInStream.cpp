@@ -7,7 +7,6 @@
 
 #include <sys/socket.h>
 #include <cstring>
-#include <memory>
 
 #include "SocketInStream.hpp"
 #include "Log.hpp"
@@ -15,142 +14,101 @@
 #define BUFSIZE 4096
 #define POOLSIZE 1000
 
-class SocketInStream::Buffer
-{
-public:
-
-    Buffer( )
-    {
-        DEBUG << "buffer created";
-        if ( pool.empty( ) )
-        {
-            pBegin = pEnd = pData = new char[BUFSIZE];
-            if ( !pData ) ERROR << "failed to allocate " << BUFSIZE << " bytes as buffer memory ";
-        }
-        else
-        {
-            pBegin = pEnd = pData = pool.front( ).release( );
-            pool.pop_front( );
-        }
-    }
-
-    Buffer( const Buffer& other ) = delete;
-    Buffer& operator=(const Buffer& other) = delete;
-
-    Buffer( Buffer&& other ) :
-    pData( other.pData ),
-    pBegin( other.pBegin ),
-    pEnd( other.pEnd )
-    {
-        DEBUG << "moved from " << &other;
-        other.pBegin = other.pEnd = other.pData = nullptr;
-    }
-
-    Buffer& operator=(Buffer&& other)
-    {
-        DEBUG << "moved from " << &other;
-        if ( this != &other )
-        {
-            pData = other.pData;
-            pBegin = other.pBegin;
-            pEnd = other.pEnd;
-            other.pBegin = other.pEnd = other.pData = nullptr;
-        }
-
-        return *this;
-    }
-
-    ~Buffer( )
-    {
-        if ( pData )
-        {
-            if ( pool.size( ) < POOLSIZE )
-            {
-                pool.push_back( std::unique_ptr<char[]>(pData) );
-            }
-            else
-            {
-                delete[] pData;
-            }
-        }
-    }
-
-    size_t getDataSize( )
-    {
-        return pEnd - pBegin;
-    }
-
-    size_t getLeftCapacity( )
-    {
-        return pData + BUFSIZE - pEnd;
-    }
-
-    void pop_front( off_t count )
-    {
-        pBegin += count;
-        if ( pBegin > pEnd ) pBegin = pEnd;
-    }
-
-    void push_back( off_t count )
-    {
-        pEnd += count;
-        if ( pEnd > pData + BUFSIZE ) pEnd = pData + BUFSIZE;
-    }
-
-    size_t getReadableBuffer( const char** ppBuf ) const
-    {
-        size_t available = pEnd - pBegin;
-        *ppBuf = available ? pBegin : nullptr;
-        return available;
-    }
-
-    size_t getWritableBuffer( char** ppBuf ) const
-    {
-        size_t left = pData + BUFSIZE - pEnd;
-        *ppBuf = left ? pEnd : nullptr;
-        return left;
-    }
-
-    void clear( )
-    {
-        pBegin = pEnd = pData;
-    }
-
-private:
-    static std::deque<std::unique_ptr<char[] >> pool;
-
-    char* pData;
-    char* pBegin;
-    char* pEnd;
-};
-
 // initialize static pool
 std::deque<std::unique_ptr<char[] >> SocketInStream::Buffer::pool = std::deque<std::unique_ptr<char[] >>();
 
-SocketInStream::SocketInStream( ) :
-mySize( 0 )
+SocketInStream::Buffer::Buffer( )
 {
-    DEBUG << "created";
+    DEBUG << "buffer created";
+    if ( !pool.empty( ) )
+    {
+        pBegin = pEnd = pData = pool.front( ).release( );
+        pool.pop_front( );
+    }
+    else
+    {
+        pBegin = pEnd = pData = new char[BUFSIZE];
+        if ( !pData ) ERROR << "failed to allocate " << BUFSIZE << " bytes as buffer memory ";
+    }
 }
 
-SocketInStream::SocketInStream( SocketInStream&& other )
+SocketInStream::Buffer::Buffer( SocketInStream::Buffer&& other ) :
+pData( other.pData ),
+pBegin( other.pBegin ),
+pEnd( other.pEnd )
 {
     DEBUG << "moved from " << &other;
+    other.pBegin = other.pEnd = other.pData = nullptr;
 }
 
-SocketInStream& SocketInStream::operator=(SocketInStream&& other)
+SocketInStream::Buffer& SocketInStream::Buffer::operator=(SocketInStream::Buffer&& other)
 {
     DEBUG << "moved from " << &other;
     if ( this != &other )
     {
-        buffers = std::move( other.buffers );
+        pData = other.pData;
+        pBegin = other.pBegin;
+        pEnd = other.pEnd;
+        other.pBegin = other.pEnd = other.pData = nullptr;
     }
+
     return *this;
 }
 
-SocketInStream::~SocketInStream( )
+SocketInStream::Buffer::~Buffer( )
 {
-    DEBUG << "destroyed";
+    if ( pData )
+    {
+        if ( pool.size( ) < POOLSIZE )
+        {
+            pool.push_back( std::unique_ptr<char[]>(pData) );
+        }
+        else
+        {
+            delete[] pData;
+        }
+    }
+}
+
+size_t SocketInStream::Buffer::getDataSize( ) const
+{
+    return pEnd - pBegin;
+}
+
+size_t SocketInStream::Buffer::getFreeCapacity( ) const
+{
+    return pData + BUFSIZE - pEnd;
+}
+
+void SocketInStream::Buffer::pop_front( off_t count )
+{
+    pBegin += count;
+    if ( pBegin > pEnd ) pBegin = pEnd;
+}
+
+void SocketInStream::Buffer::push_back( off_t count )
+{
+    pEnd += count;
+    if ( pEnd > pData + BUFSIZE ) pEnd = pData + BUFSIZE;
+}
+
+size_t SocketInStream::Buffer::getReadableBuffer( const char** ppBuf ) const
+{
+    size_t available = pEnd - pBegin;
+    *ppBuf = available ? pBegin : nullptr;
+    return available;
+}
+
+size_t SocketInStream::Buffer::getWritableBuffer( char** ppBuf ) const
+{
+    size_t left = pData + BUFSIZE - pEnd;
+    *ppBuf = left ? pEnd : nullptr;
+    return left;
+}
+
+void SocketInStream::Buffer::clear( )
+{
+    pBegin = pEnd = pData;
 }
 
 ssize_t SocketInStream::recv( const int socket )
@@ -256,12 +214,6 @@ void SocketInStream::pop_front( off_t count )
             count = 0;
         }
     }
-}
-
-void SocketInStream::clear( )
-{
-    buffers.clear( );
-    mySize = 0;
 }
 
 bool SocketInStream::extract( char* buf, size_t count )

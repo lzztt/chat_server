@@ -14,6 +14,7 @@
 class DataFrameHandler : public MessageHandler
 {
 public:
+
     explicit DataFrameHandler();
 
     DataFrameHandler(const DataFrameHandler& other) = delete;
@@ -27,9 +28,8 @@ public:
     virtual bool process(SocketInStream& in, SocketOutStream& out);
 
 private:
-    void myHandleTextMessage(SocketOutStream& out);
-    void myHandleBinaryMessage(SocketOutStream& out);
-    void myHandleFragmentFrame(SocketOutStream& out);
+    bool myHandleMessage(SocketOutStream& out);
+    bool myHandleFragmentFrame(SocketOutStream& out);
     void myHandleUnrealsedData(SocketOutStream& out);
     void myHandleBadMaskBit(SocketOutStream& out);
     void myHandleBadPayloadLength(SocketOutStream& out);
@@ -38,6 +38,8 @@ private:
     void mySendPongFrame(SocketOutStream& out);
 
     DataFrameParser myParser;
+
+    std::string myMessage;
 };
 
 #endif	/* DATAFRAMEHANDLER_HPP */

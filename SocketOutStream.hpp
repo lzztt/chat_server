@@ -14,26 +14,77 @@
 class SocketOutStream
 {
 public:
-    explicit SocketOutStream();
+
+    SocketOutStream()
+    {
+    }
 
     SocketOutStream(const SocketOutStream& other) = delete;
     SocketOutStream& operator=(const SocketOutStream& other) = delete;
 
-    SocketOutStream(SocketOutStream&& other);
-    SocketOutStream& operator=(SocketOutStream&& other);
+    SocketOutStream(SocketOutStream&& other) :
+    buffers(std::move(other.buffers))
+    {
+    }
 
-    ~SocketOutStream();
+    SocketOutStream& operator=(SocketOutStream&& other)
+    {
+        if (this != &other)
+        {
+            buffers = std::move(other.buffers);
+        }
+        return *this;
+    }
+
+    ~SocketOutStream() = default;
+
+    void add(std::string&& str)
+    {
+        buffers.push_back(Buffer(std::move(str)));
+    }
+
+    void add(int fd)
+    {
+        buffers.push_back(Buffer(fd));
+    }
+
+    bool empty()
+    {
+        return buffers.empty();
+    }
+
+    void clear()
+    {
+        buffers.clear();
+    }
     
     ssize_t send(const int socket);
-    
-    void add( std::string&& str );
-    void add( int fd );
-    
-    bool empty();   
-    void clear();
 
 private:
-    class Buffer;
+
+    class Buffer
+    {
+    public:
+
+        struct File
+        {
+            int fd;
+            size_t size;
+        };
+
+        Buffer(int fd);
+        Buffer(std::string&& str);
+        Buffer(const Buffer& other) = delete;
+        Buffer& operator=(const Buffer& other) = delete;
+        Buffer(Buffer&& other);
+        Buffer& operator=(Buffer&& other);
+        ~Buffer();
+
+        std::string str;
+        File file;
+        off_t offset;
+    };
+
     std::deque<Buffer> buffers;
 };
 

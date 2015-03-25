@@ -1,5 +1,5 @@
 /* 
- * File:   Socket.cpp
+ * File:   ServerSocket.cpp
  * Author: ikki
  * 
  * Created on February 19, 2015, 12:00 AM
@@ -12,7 +12,7 @@
 #include <unistd.h>
 #include <cstring>
 
-#include "Socket.hpp"
+#include "ServerSocket.hpp"
 #include "Log.hpp"
 #include "Exception.hpp"
 #include "EventLoop.hpp"
@@ -186,8 +186,8 @@ namespace
     }
 }
 
-Socket::Socket( const int port, SocketDataHandler&& handler ) :
-handler( std::move( handler ) )
+ServerSocket::ServerSocket( const int port ) :
+pClientHandler( &(ClientSocketHandler::getInstance( )) )
 {
     socket = myCreate( port );
     DEBUG << "socket " << socket << " [port=" << port << "]";
@@ -208,8 +208,8 @@ handler( std::move( handler ) )
     }
 }
 
-Socket::Socket( std::string& unixSocketFile, SocketDataHandler&& handler ) :
-handler( std::move( handler ) )
+ServerSocket::ServerSocket( std::string& unixSocketFile ) :
+pClientHandler( &(ClientSocketHandler::getInstance( )) )
 {
     socket = myCreate( unixSocketFile );
     DEBUG << "socket " << socket << " [file=" << unixSocketFile << "]";
@@ -230,13 +230,13 @@ handler( std::move( handler ) )
     }
 }
 
-Socket::~Socket( )
+ServerSocket::~ServerSocket( )
 {
     DEBUG << "destroyed, " << "close socket " << socket;
     myClose( socket );
 }
 
-void Socket::onConnect( const Event& ev )
+void ServerSocket::onConnect( const Event& ev )
 {
     /* We have a notification on the listening socket, which
      * means one or more incoming connections. 
@@ -301,7 +301,7 @@ void Socket::onConnect( const Event& ev )
             }
         }
 
-        if ( !handler.add( client ) )
+        if ( !pClientHandler->add( client ) )
         {
             // DEBUG
             DEBUG << "DISCONNECT: client @ " << socket;

@@ -6,12 +6,13 @@
  */
 
 #include "Server.hpp"
+#include "ServerSocket.hpp"
+#include "EventLoop.hpp"
+#include "Client.hpp"
+#include "Message.hpp"
 
-Server::Server( )
+void Server::run( )
 {
+    ServerSocket s( 8080 );
+    EventLoop::getInstance( ).run( );
 }
-
-Server::~Server( )
-{
-}
-
