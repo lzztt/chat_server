@@ -8,7 +8,7 @@
 #include <sys/epoll.h>
 #include <sys/socket.h>
 
-#include "SocketDataHandler.hpp"
+#include "ClientSocketHandler.hpp"
 #include "EventLoop.hpp"
 #include "Log.hpp"
 #include "SocketInStream.hpp"
@@ -17,7 +17,7 @@
 #include "HandshakeHandler.hpp"
 #include "DataFrameHandler.hpp"
 
-class SocketDataHandler::Stream
+class ClientSocketHandler::Stream
 {
 public:
 
@@ -84,18 +84,18 @@ public:
     MessageHandler* handler;
 };
 
-SocketDataHandler::SocketDataHandler( )
+ClientSocketHandler::ClientSocketHandler( )
 {
     DEBUG << "created";
 }
 
-SocketDataHandler::SocketDataHandler( SocketDataHandler&& other ) :
+ClientSocketHandler::ClientSocketHandler( ClientSocketHandler&& other ) :
 streams( std::move( other.streams ) )
 {
     DEBUG << "moved from " << &other;
 }
 
-SocketDataHandler& SocketDataHandler::operator=(SocketDataHandler&& other)
+ClientSocketHandler& ClientSocketHandler::operator=(ClientSocketHandler&& other)
 {
     DEBUG << "moved from " << &other;
     if ( this != &other )
@@ -105,12 +105,12 @@ SocketDataHandler& SocketDataHandler::operator=(SocketDataHandler&& other)
     return *this;
 }
 
-SocketDataHandler::~SocketDataHandler( )
+ClientSocketHandler::~ClientSocketHandler( )
 {
     DEBUG << "destroyed";
 }
 
-bool SocketDataHandler::add( int socket )
+bool ClientSocketHandler::add( int socket )
 {
     /* Make the incoming socket non-blocking and add it to the list of fds to monitor. */
     Event dataEvent( socket, EPOLLIN | EPOLLOUT, [this](const Event & ev)
@@ -135,7 +135,7 @@ bool SocketDataHandler::add( int socket )
     return EventLoop::getInstance( ).registerEvent( dataEvent );
 }
 
-void SocketDataHandler::onError( const Event& ev )
+void ClientSocketHandler::onError( const Event& ev )
 {
     int socket = ev.getFd( );
     DEBUG << "socket=" << socket;
@@ -149,7 +149,7 @@ void SocketDataHandler::onError( const Event& ev )
     streams.erase( socket );
 }
 
-void SocketDataHandler::onRecv( const Event& ev )
+void ClientSocketHandler::onRecv( const Event& ev )
 {
     int socket = ev.getFd( );
     DEBUG << "socket=" << socket;
@@ -187,7 +187,7 @@ void SocketDataHandler::onRecv( const Event& ev )
     }
 }
 
-void SocketDataHandler::onSend( const Event& ev )
+void ClientSocketHandler::onSend( const Event& ev )
 {
     int socket = ev.getFd( );
     DEBUG << "socket=" << socket;

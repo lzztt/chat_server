@@ -8,8 +8,6 @@
 #include "Server.hpp"
 #include "ServerSocket.hpp"
 #include "EventLoop.hpp"
-#include "Client.hpp"
-#include "Message.hpp"
 
 void Server::run( )
 {

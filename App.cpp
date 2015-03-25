@@ -33,7 +33,7 @@ void App::onClose( unsigned int clientID )
 
 }
 
-void App::onMessage( unsigned int clientID, std::string& msg )
+void App::onMessage( unsigned int clientID, std::string&& msg )
 {
 
 }

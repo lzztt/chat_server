@@ -1,30 +1,30 @@
 /* 
- * File:   SocketDataHandler.hpp
+ * File:   ClientSocketHandler.hpp
  * Author: ikki
  *
  * Created on February 20, 2015, 11:19 PM
  */
 
-#ifndef SOCKETDATAHANDLER_HPP
-#define	SOCKETDATAHANDLER_HPP
+#ifndef CLIENTSOCKETHANDLER_HPP
+#define	CLIENTSOCKETHANDLER_HPP
 
 #include <unordered_map>
 #include <memory>
 
 #include "Event.hpp"
 
-class SocketDataHandler
+class ClientSocketHandler
 {
 public:
-    explicit SocketDataHandler();
+    explicit ClientSocketHandler();
 
-    SocketDataHandler(const SocketDataHandler& other) = delete;
-    SocketDataHandler& operator=(const SocketDataHandler& other) = delete;
+    ClientSocketHandler(const ClientSocketHandler& other) = delete;
+    ClientSocketHandler& operator=(const ClientSocketHandler& other) = delete;
 
-    SocketDataHandler(SocketDataHandler&& other);
-    SocketDataHandler& operator=(SocketDataHandler&& other);
+    ClientSocketHandler(ClientSocketHandler&& other);
+    ClientSocketHandler& operator=(ClientSocketHandler&& other);
 
-    ~SocketDataHandler();
+    ~ClientSocketHandler();
 
     bool add(int socket);
 
@@ -39,5 +39,5 @@ private:
     std::unordered_map<int, std::unique_ptr<Stream>> streams;
 };
 
-#endif	/* SOCKETDATAHANDLER_HPP */
+#endif	/* CLIENTSOCKETHANDLER_HPP */
 

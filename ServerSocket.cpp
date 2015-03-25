@@ -187,7 +187,7 @@ namespace
 }
 
 ServerSocket::ServerSocket( const int port ) :
-pClientHandler( &(ClientSocketHandler::getInstance( )) )
+pClientHandler( new ClientSocketHandler() )
 {
     socket = myCreate( port );
     DEBUG << "socket " << socket << " [port=" << port << "]";
@@ -209,7 +209,7 @@ pClientHandler( &(ClientSocketHandler::getInstance( )) )
 }
 
 ServerSocket::ServerSocket( std::string& unixSocketFile ) :
-pClientHandler( &(ClientSocketHandler::getInstance( )) )
+pClientHandler( new ClientSocketHandler() )
 {
     socket = myCreate( unixSocketFile );
     DEBUG << "socket " << socket << " [file=" << unixSocketFile << "]";
@@ -234,6 +234,7 @@ ServerSocket::~ServerSocket( )
 {
     DEBUG << "destroyed, " << "close socket " << socket;
     myClose( socket );
+    delete pClientHandler;
 }
 
 void ServerSocket::onConnect( const Event& ev )
