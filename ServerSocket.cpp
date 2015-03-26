@@ -15,7 +15,6 @@
 #include "ServerSocket.hpp"
 #include "Log.hpp"
 #include "Exception.hpp"
-#include "EventLoop.hpp"
 
 namespace
 {
@@ -186,8 +185,9 @@ namespace
     }
 }
 
-ServerSocket::ServerSocket( const int port ) :
-pClientHandler( new ClientSocketHandler() )
+ServerSocket::ServerSocket( const int port, EventLoop* pEventLoop, ClientSocketHandler* pClientHander ) :
+pEventLoop( pEventLoop ),
+pClientHandler( pClientHander )
 {
     socket = myCreate( port );
     DEBUG << "socket " << socket << " [port=" << port << "]";
@@ -202,14 +202,15 @@ pClientHandler( new ClientSocketHandler() )
         this->onConnect( ev );
     } );
 
-    if ( !EventLoop::getInstance( ).registerEvent( connectEvent ) )
+    if ( !pEventLoop->registerEvent( connectEvent ) )
     {
         throw Exception( "failed to register connect event handler for server socket" );
     }
 }
 
-ServerSocket::ServerSocket( std::string& unixSocketFile ) :
-pClientHandler( new ClientSocketHandler() )
+ServerSocket::ServerSocket( std::string& unixSocketFile, EventLoop* pEventLoop, ClientSocketHandler* pClientHander ) :
+pEventLoop( pEventLoop ),
+pClientHandler( pClientHander )
 {
     socket = myCreate( unixSocketFile );
     DEBUG << "socket " << socket << " [file=" << unixSocketFile << "]";
@@ -224,7 +225,7 @@ pClientHandler( new ClientSocketHandler() )
         this->onConnect( ev );
     } );
 
-    if ( !EventLoop::getInstance( ).registerEvent( connectEvent ) )
+    if ( !pEventLoop->registerEvent( connectEvent ) )
     {
         throw Exception( "failed to register connect event handler for server socket" );
     }

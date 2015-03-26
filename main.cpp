@@ -5,12 +5,37 @@
  * Created on February 16, 2015, 10:04 PM
  */
 
-#include "Server.hpp"
+#include "WebSocketServerApp.hpp"
+
+class EchoServerApp : public WebSocketServerApp
+{
+
+    virtual void onOpen( int clientID ) override
+    {
+
+    }
+
+    virtual void onClose( int clientID ) override
+    {
+
+    }
+
+    virtual void onMessage( std::vector<char> msg, int clientID ) override
+    {
+        send( msg, clientID );
+    }
+
+    virtual void onMessage( std::string msg, int clientID ) override
+    {
+        send( msg, clientID );
+    }
+
+};
 
 int main( int argc, char** argv )
 {
 
-    Server().run();
+    EchoServerApp( ).run( );
     return 0;
 }
 

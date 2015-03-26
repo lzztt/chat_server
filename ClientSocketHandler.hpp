@@ -12,11 +12,12 @@
 #include <memory>
 
 #include "Event.hpp"
+#include "EventLoop.hpp"
 
 class ClientSocketHandler
 {
 public:
-    explicit ClientSocketHandler();
+    explicit ClientSocketHandler(EventLoop* pEventLoop);
 
     ClientSocketHandler(const ClientSocketHandler& other) = delete;
     ClientSocketHandler& operator=(const ClientSocketHandler& other) = delete;
@@ -27,6 +28,7 @@ public:
     ~ClientSocketHandler();
 
     bool add(int socket);
+    bool remove(int socket);
 
 protected:
     void onError(const Event& ev);
@@ -37,6 +39,7 @@ private:
 
     class Stream;
     std::unordered_map<int, std::unique_ptr<Stream>> streams;
+    EventLoop* pEventLoop;
 };
 
 #endif	/* CLIENTSOCKETHANDLER_HPP */

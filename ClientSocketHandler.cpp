@@ -9,7 +9,6 @@
 #include <sys/socket.h>
 
 #include "ClientSocketHandler.hpp"
-#include "EventLoop.hpp"
 #include "Log.hpp"
 #include "SocketInStream.hpp"
 #include "SocketOutStream.hpp"
@@ -35,6 +34,12 @@ public:
     {
         DEBUG << "created";
     }
+
+    Stream( const Stream& other ) = delete;
+    Stream& operator=(const Stream& other) = delete;
+
+    Stream( Stream&& other ) = delete;
+    Stream& operator=(Stream&& other) = delete;
 
     ~Stream( )
     {
@@ -84,7 +89,8 @@ public:
     MessageHandler* handler;
 };
 
-ClientSocketHandler::ClientSocketHandler( )
+ClientSocketHandler::ClientSocketHandler( EventLoop* pEventLoop ) :
+pEventLoop( pEventLoop )
 {
     DEBUG << "created";
 }
@@ -132,7 +138,15 @@ bool ClientSocketHandler::add( int socket )
         }
     } );
 
-    return EventLoop::getInstance( ).registerEvent( dataEvent );
+    return pEventLoop->registerEvent( dataEvent );
+}
+
+bool ClientSocketHandler::remove( int socket )
+{
+    pEventLoop->unregisterEvent( Event( socket, 0, [](const Event & ev)
+    {
+    } ) );
+    streams.erase( socket );
 }
 
 void ClientSocketHandler::onError( const Event& ev )
@@ -143,7 +157,7 @@ void ClientSocketHandler::onError( const Event& ev )
     // explicitly unregister for non error event
     if ( !ev.isError( ) )
     {
-        EventLoop::getInstance( ).unregisterEvent( ev );
+        pEventLoop->unregisterEvent( ev );
     }
 
     streams.erase( socket );

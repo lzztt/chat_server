@@ -12,12 +12,13 @@
 
 #include "Event.hpp"
 #include "ClientSocketHandler.hpp"
+#include "EventLoop.hpp"
 
 class ServerSocket
 {
 public:
-    explicit ServerSocket(const int port);
-    explicit ServerSocket(std::string& unixSocketFile);
+    explicit ServerSocket(const int port, EventLoop* pEventLoop, ClientSocketHandler* pClientHander);
+    explicit ServerSocket(std::string& unixSocketFile, EventLoop* pEventLoop, ClientSocketHandler* pClientHander);
 
     ServerSocket(const ServerSocket& other) = delete;
     ServerSocket& operator=(const ServerSocket& other) = delete;
@@ -26,12 +27,13 @@ public:
     ServerSocket& operator=(ServerSocket&& other) = delete;
 
     ~ServerSocket();
-    
+
 protected:
     void onConnect(const Event& ev);
-    
+
 private:
     int socket;
+    EventLoop* pEventLoop;
     ClientSocketHandler* pClientHandler;
 };
 

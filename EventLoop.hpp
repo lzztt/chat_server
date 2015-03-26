@@ -15,8 +15,7 @@
 class EventLoop
 {
 public:
-    // singleton pattern
-    static EventLoop& getInstance();
+    EventLoop();
 
     EventLoop(const EventLoop& other) = delete;
     EventLoop& operator=(const EventLoop& other) = delete;
@@ -25,16 +24,13 @@ public:
     EventLoop& operator=(EventLoop&& other) = delete;
 
     ~EventLoop();
-    
+
     bool registerEvent(const Event& e) noexcept;
     bool unregisterEvent(const Event& e) noexcept;
     void run() noexcept;
     void stop();
-    
+
 private:
-    // private constructor for singleton
-    EventLoop();
-    
     int fd;
     int currentEventFd;
     std::unordered_map<int, Event> events;

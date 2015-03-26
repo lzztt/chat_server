@@ -14,12 +14,6 @@
 #include "Exception.hpp"
 #include "Log.hpp"
 
-EventLoop& EventLoop::getInstance( )
-{
-    static EventLoop evLoop;
-    return evLoop;
-}
-
 EventLoop::EventLoop( ) :
 fd( ::epoll_create1( 0 ) ),
 currentEventFd( 0 )
