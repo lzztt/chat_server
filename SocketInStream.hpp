@@ -24,14 +24,18 @@ public:
     SocketInStream& operator=(const SocketInStream& other) = delete;
 
     SocketInStream(SocketInStream&& other) :
+    mySize(other.mySize),
     buffers(std::move(other.buffers))
     {
+        other.mySize = 0;
     }
 
     SocketInStream& operator=(SocketInStream&& other)
     {
         if (this != &other)
         {
+            mySize = other.mySize;
+            other.mySize = 0;
             buffers = std::move(other.buffers);
         }
         return *this;

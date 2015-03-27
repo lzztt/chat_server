@@ -135,7 +135,7 @@ DataFrameParser::Status DataFrameParser::parse( SocketInStream& in )
         else
         {
             // we get unreleased data
-            ERROR << "cannot further parse IN stream before releasing existing data (" << myDataLength << " bytes)";
+            LOG_ERROR << "cannot further parse IN stream before releasing existing data (" << myDataLength << " bytes)";
             return Status::UNRELEASED_DATA;
         }
     }
@@ -170,7 +170,7 @@ DataFrameParser::Status DataFrameParser::parse( SocketInStream& in )
             // validate mask bit
             if ( !myHeader.mask )
             {
-                ERROR << "missing mask bit";
+                LOG_ERROR << "missing mask bit";
                 myState = State::END;
                 in.clear( );
                 return Status::BAD_MASK_BIT;
@@ -204,7 +204,7 @@ DataFrameParser::Status DataFrameParser::parse( SocketInStream& in )
 
                 if ( myPayloadLength < 126 )
                 {
-                    ERROR << "bad payload length: expect 0x7E [0x007E, 0xFFFF], get " << myPayloadLength;
+                    LOG_ERROR << "bad payload length: expect 0x7E [0x007E, 0xFFFF], get " << myPayloadLength;
                     myState = State::END;
                     in.clear( );
                     return Status::BAD_PAYLOAD_LENGTH;
@@ -227,7 +227,7 @@ DataFrameParser::Status DataFrameParser::parse( SocketInStream& in )
 
                 if ( myPayloadLength < 0x0000000000010000 || myPayloadLength > 0x7FFFFFFFFFFFFFFF )
                 {
-                    ERROR << "bad payload length: expect 0x7F [0x0000000000010000, 0x7FFFFFFFFFFFFFFF], get " << myPayloadLength;
+                    LOG_ERROR << "bad payload length: expect 0x7F [0x0000000000010000, 0x7FFFFFFFFFFFFFFF], get " << myPayloadLength;
                     myState = State::END;
                     in.clear( );
                     return Status::BAD_PAYLOAD_LENGTH;

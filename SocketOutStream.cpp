@@ -18,7 +18,7 @@ SocketOutStream::Buffer::Buffer( int fd ) :
 file({fd, (size_t) ::lseek( fd, 0, SEEK_END )} ),
 offset( 0 )
 {
-    DEBUG << "buffer created with fd";
+    LOG_DEBUG << "buffer created with fd";
 }
 
 SocketOutStream::Buffer::Buffer( std::string&& str ) :
@@ -26,7 +26,7 @@ str( std::move( str ) ),
 file({0} ),
 offset( 0 )
 {
-    DEBUG << "buffer created with string";
+    LOG_DEBUG << "buffer created with string";
 }
 
 SocketOutStream::Buffer::Buffer( SocketOutStream::Buffer&& other ) :
@@ -34,14 +34,14 @@ str( std::move( other.str ) ),
 file( other.file ),
 offset( other.offset )
 {
-    DEBUG << "moved from " << &other;
+    LOG_DEBUG << "moved from " << &other;
     other.file = {0};
     other.offset = 0;
 }
 
 SocketOutStream::Buffer& SocketOutStream::Buffer::operator=(SocketOutStream::Buffer&& other)
 {
-    DEBUG << "moved from " << &other;
+    LOG_DEBUG << "moved from " << &other;
     if ( this != &other )
     {
         file = other.file;
@@ -100,14 +100,14 @@ ssize_t SocketOutStream::send( const int socket )
                         else
                         {
                             // send error
-                            ERROR << "socket " << socket << " closed (" << strerror( errno ) << ")";
+                            LOG_ERROR << "socket " << socket << " closed (" << strerror( errno ) << ")";
                             return -1;
                         }
                     }
                     else
                     {
                         // this should not happen
-                        ERROR << "socket " << socket << " send 0 bytes unexpectedly";
+                        LOG_ERROR << "socket " << socket << " send 0 bytes unexpectedly";
                         return -1;
                     }
                 }
@@ -139,14 +139,14 @@ ssize_t SocketOutStream::send( const int socket )
                         else
                         {
                             // send error
-                            ERROR << "socket " << socket << " closed (" << strerror( errno ) << ")";
+                            LOG_ERROR << "socket " << socket << " closed (" << strerror( errno ) << ")";
                             return -1;
                         }
                     }
                     else
                     {
                         // this should not happen
-                        ERROR << "socket " << socket << " send 0 bytes unexpectedly";
+                        LOG_ERROR << "socket " << socket << " send 0 bytes unexpectedly";
                         return -1;
                     }
                 }
@@ -164,6 +164,6 @@ ssize_t SocketOutStream::send( const int socket )
         }
     }
 
-    DEBUG << "send " << nSend << " bytes";
+    LOG_DEBUG << "send " << nSend << " bytes";
     return nSend;
 }

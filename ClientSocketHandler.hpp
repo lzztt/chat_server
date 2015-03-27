@@ -8,16 +8,17 @@
 #ifndef CLIENTSOCKETHANDLER_HPP
 #define	CLIENTSOCKETHANDLER_HPP
 
-#include <unordered_map>
-#include <memory>
+#include <vector>
 
 #include "Event.hpp"
 #include "EventLoop.hpp"
 
+class WebSocketServerApp;
+
 class ClientSocketHandler
 {
 public:
-    explicit ClientSocketHandler(EventLoop* pEventLoop);
+    explicit ClientSocketHandler(WebSocketServerApp* pServerApp);
 
     ClientSocketHandler(const ClientSocketHandler& other) = delete;
     ClientSocketHandler& operator=(const ClientSocketHandler& other) = delete;
@@ -28,7 +29,7 @@ public:
     ~ClientSocketHandler();
 
     bool add(int socket);
-    bool remove(int socket);
+    bool close(int socket);
 
 protected:
     void onError(const Event& ev);
@@ -38,8 +39,8 @@ protected:
 private:
 
     class Stream;
-    std::unordered_map<int, std::unique_ptr<Stream>> streams;
-    EventLoop* pEventLoop;
+    std::vector<Stream> streams;
+    WebSocketServerApp* pServerApp;
 };
 
 #endif	/* CLIENTSOCKETHANDLER_HPP */

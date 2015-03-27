@@ -9,6 +9,7 @@
 #include <sys/socket.h>
 
 #include "ClientSocketHandler.hpp"
+#include "WebSocketServerApp.hpp"
 #include "Log.hpp"
 #include "SocketInStream.hpp"
 #include "SocketOutStream.hpp"
@@ -29,57 +30,51 @@ public:
     };
 
     Stream( ) :
-    state( State::CONNECTING ),
-    handler( dynamic_cast<MessageHandler*> (new HandshakeHandler( )) )
+    state( State::CLOSED ),
+    handler( nullptr )
     {
-        DEBUG << "created";
+        LOG_DEBUG << "created";
     }
 
     Stream( const Stream& other ) = delete;
     Stream& operator=(const Stream& other) = delete;
 
-    Stream( Stream&& other ) = delete;
-    Stream& operator=(Stream&& other) = delete;
+    Stream( Stream&& other ) = default;
+    Stream& operator=(Stream&& other) = default;
 
     ~Stream( )
     {
-        DEBUG << "destroyed";
+        LOG_DEBUG << "destroyed";
         if ( handler ) delete handler;
     }
 
-    void process( )
+    void init( )
     {
-        // do not process further message in CLOSING state
-        if ( state == State::CLOSING )
+        state = State::CONNECTING;
+        if ( handler ) delete handler;
+        handler = dynamic_cast<MessageHandler*> (new HandshakeHandler( ));
+    }
+
+    void open( WebSocketServerApp* pServerApp, int socket )
+    {
+        // OPENING: handshake finished
+        state = State::OPEN;
+        delete handler;
+        handler = dynamic_cast<MessageHandler*> (new DataFrameHandler( pServerApp, socket ));
+    }
+
+    void close( )
+    {
+        if ( state != State::CLOSED )
         {
             state = State::CLOSED;
-            return;
-        }
-
-        if ( handler->process( in, out ) )
-        {
-            // success
-            // don't need to handle SUCCESS status for OPEN
-            if ( state == State::CONNECTING )
+            if ( !handler )
             {
-                // OPENING: handshake finished
-                state = State::OPEN;
                 delete handler;
-                handler = dynamic_cast<MessageHandler*> (new DataFrameHandler( ));
-                return;
+                handler = nullptr;
             }
-        }
-        else
-        {
-            // error
-            // don't need to handle ERROR status for CONNECTING
-            if ( state == State::OPEN )
-            {
-                // CONNECTED: got a closing frame or an invalid frame
-                // response a close frame
-                state = State::CLOSING;
-                return;
-            }
+            in.clear( );
+            out.clear( );
         }
     }
 
@@ -89,21 +84,21 @@ public:
     MessageHandler* handler;
 };
 
-ClientSocketHandler::ClientSocketHandler( EventLoop* pEventLoop ) :
-pEventLoop( pEventLoop )
+ClientSocketHandler::ClientSocketHandler( WebSocketServerApp* pServerApp ) :
+pServerApp( pServerApp )
 {
-    DEBUG << "created";
+    LOG_DEBUG << "created";
 }
 
 ClientSocketHandler::ClientSocketHandler( ClientSocketHandler&& other ) :
 streams( std::move( other.streams ) )
 {
-    DEBUG << "moved from " << &other;
+    LOG_DEBUG << "moved from " << &other;
 }
 
 ClientSocketHandler& ClientSocketHandler::operator=(ClientSocketHandler&& other)
 {
-    DEBUG << "moved from " << &other;
+    LOG_DEBUG << "moved from " << &other;
     if ( this != &other )
     {
         streams = std::move( other.streams );
@@ -113,12 +108,22 @@ ClientSocketHandler& ClientSocketHandler::operator=(ClientSocketHandler&& other)
 
 ClientSocketHandler::~ClientSocketHandler( )
 {
-    DEBUG << "destroyed";
+    LOG_DEBUG << "destroyed";
 }
 
 bool ClientSocketHandler::add( int socket )
 {
-    /* Make the incoming socket non-blocking and add it to the list of fds to monitor. */
+    // fill streams till the socket element
+    if ( streams.size( ) < socket + 1 )
+    {
+        streams.resize( socket + 1 );
+    }
+    else
+    {
+        // close existing stream
+        streams[socket].close( );
+    }
+
     Event dataEvent( socket, EPOLLIN | EPOLLOUT, [this](const Event & ev)
     {
         if ( ev.isError( ) )
@@ -138,43 +143,39 @@ bool ClientSocketHandler::add( int socket )
         }
     } );
 
-    return pEventLoop->registerEvent( dataEvent );
+    return pServerApp->myEventLoop.registerEvent( dataEvent );
 }
 
-bool ClientSocketHandler::remove( int socket )
+bool ClientSocketHandler::close( int socket )
 {
-    pEventLoop->unregisterEvent( Event( socket, 0, [](const Event & ev)
+    pServerApp->myEventLoop.unregisterEvent( Event( socket, 0, [](const Event & ev)
     {
     } ) );
-    streams.erase( socket );
+    streams[socket].close( );
 }
 
 void ClientSocketHandler::onError( const Event& ev )
 {
     int socket = ev.getFd( );
-    DEBUG << "socket=" << socket;
+    LOG_DEBUG << "socket=" << socket;
 
     // explicitly unregister for non error event
     if ( !ev.isError( ) )
     {
-        pEventLoop->unregisterEvent( ev );
+        pServerApp->myEventLoop.unregisterEvent( ev );
     }
 
-    streams.erase( socket );
+    streams[socket].close( );
 }
 
 void ClientSocketHandler::onRecv( const Event& ev )
 {
     int socket = ev.getFd( );
-    DEBUG << "socket=" << socket;
+    LOG_DEBUG << "socket=" << socket;
 
-    auto iter = streams.find( socket );
-    if ( iter == streams.end( ) )
-    {
-        iter = streams.emplace( socket, std::unique_ptr<Stream>(new Stream( )) ).first;
-    }
+    auto& stream = streams[socket];
 
-    if ( iter->second->state == Stream::State::CLOSING || iter->second->state == Stream::State::CLOSED )
+    if ( stream.state == Stream::State::CLOSING )
     {
         // closing, do not process any further message, just close connection
         onError( ev );
@@ -182,17 +183,52 @@ void ClientSocketHandler::onRecv( const Event& ev )
     }
 
     // read data
-    ssize_t count = iter->second->in.recv( socket );
+    ssize_t count = stream.in.recv( socket );
 
     if ( count > 0 )
     {
-        iter->second->process( );
-        if ( !iter->second->out.empty( ) )
+        // stream.process( pServerApp, socket );
+        // process
+        if ( stream.state == Stream::State::CLOSED )
         {
-            if ( iter->second->out.send( socket ) < 0 )
+            stream.init( );
+        }
+
+        // process message for CONNECTING and OPEN state
+        // we really should only pass the in stream for message
+        // for handshaking, we may pass the out stream too
+        switch ( stream.handler->process( stream.in, stream.out ) )
+        {
+        case MessageHandler::Status::SUCCESS:
+            if ( stream.state == Stream::State::CONNECTING )
             {
-                onError( ev );
+                stream.open( pServerApp, socket );
             }
+            break;
+
+        case MessageHandler::Status::PARSING:
+            break;
+
+        case MessageHandler::Status::ERROR:
+            if ( stream.state == Stream::State::OPEN )
+            {
+                // CONNECTED: got a closing frame or an invalid frame
+                // response a close frame
+
+                // first need to check whether we get a pending response
+                // pServerApp->sendPendingMessage( socket );
+
+                if ( stream.out.empty( ) )
+                {
+                    stream.close( );
+                }
+                else
+                {
+                    // will call close() after send()
+                    stream.state = Stream::State::CLOSING;
+                }
+            }
+            break;
         }
     }
     else if ( count < 0 )
@@ -204,17 +240,21 @@ void ClientSocketHandler::onRecv( const Event& ev )
 void ClientSocketHandler::onSend( const Event& ev )
 {
     int socket = ev.getFd( );
-    DEBUG << "socket=" << socket;
+    LOG_DEBUG << "socket=" << socket;
 
-    auto iter = streams.find( socket );
-    if ( iter == streams.end( ) )
+    auto& stream = streams[socket];
+    if ( !stream.out.empty( ) )
     {
-        return;
-    }
+        if ( stream.out.send( socket ) < 0 )
+        {
+            onError( ev );
+        }
 
-    if ( iter->second->out.send( socket ) < 0 )
-    {
-        onError( ev );
+        // close CLOSING stream, if flush the out stream
+        if ( stream.out.empty( ) && stream.state == Stream::State::CLOSING )
+        {
+            stream.close( );
+        }
     }
 }
 

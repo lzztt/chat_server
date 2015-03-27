@@ -10,31 +10,15 @@
 #include "sha1/sha1.hpp"
 #include "base64/base64.hpp"
 
-HandshakeHandler::HandshakeHandler( )
+MessageHandler::Status HandshakeHandler::process( SocketInStream& in, SocketOutStream& out )
 {
-}
-
-HandshakeHandler::HandshakeHandler( HandshakeHandler&& other )
-{
-}
-
-HandshakeHandler& HandshakeHandler::operator=(HandshakeHandler&& other)
-{
-}
-
-HandshakeHandler::~HandshakeHandler( )
-{
-}
-
-bool HandshakeHandler::process( SocketInStream& in, SocketOutStream& out )
-{
-    DEBUG << "processing";
+    LOG_DEBUG << "processing";
     HandshakeParser::Status status = myParser.parse( in );
     switch ( status )
     {
     case HandshakeParser::Status::SWITCHING_PROTOCOLS:
         myHandleSwitchingProtocols( out );
-        return true;
+        return Status::SUCCESS;
         break;
 
     case HandshakeParser::Status::BAD_REQUEST:
@@ -54,13 +38,14 @@ bool HandshakeHandler::process( SocketInStream& in, SocketOutStream& out )
         break;
 
     case HandshakeParser::Status::PARSING:
+        Status::PARSING;
         break;
 
     default:
-        ERROR << "unsupported status";
+        LOG_ERROR << "unsupported status";
     }
     
-    return false;
+    return Status::ERROR;
 }
 
 void HandshakeHandler::myHandleSwitchingProtocols( SocketOutStream& out )
@@ -82,7 +67,7 @@ void HandshakeHandler::myHandleSwitchingProtocols( SocketOutStream& out )
     size_t count = base64::encode( (const char*) sha1sum, 20, base64 );
     if ( count != BASE64_LEN )
     {
-        ERROR << "expecting base64-encoding Sec-WebSocket-Accept hash string has length " << BASE64_LEN << " get " << count;
+        LOG_ERROR << "expecting base64-encoding Sec-WebSocket-Accept hash string has length " << BASE64_LEN << " get " << count;
     }
     response.append( base64, BASE64_LEN ).append( "\r\n\r\n" );
     out.add( std::move( response ) );

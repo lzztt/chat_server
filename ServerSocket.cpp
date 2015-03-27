@@ -190,7 +190,7 @@ pEventLoop( pEventLoop ),
 pClientHandler( pClientHander )
 {
     socket = myCreate( port );
-    DEBUG << "socket " << socket << " [port=" << port << "]";
+    LOG_DEBUG << "socket " << socket << " [port=" << port << "]";
 
     if ( socket == -1 )
     {
@@ -213,7 +213,7 @@ pEventLoop( pEventLoop ),
 pClientHandler( pClientHander )
 {
     socket = myCreate( unixSocketFile );
-    DEBUG << "socket " << socket << " [file=" << unixSocketFile << "]";
+    LOG_DEBUG << "socket " << socket << " [file=" << unixSocketFile << "]";
 
     if ( socket == -1 )
     {
@@ -233,7 +233,7 @@ pClientHandler( pClientHander )
 
 ServerSocket::~ServerSocket( )
 {
-    DEBUG << "destroyed, " << "close socket " << socket;
+    LOG_DEBUG << "destroyed, " << "close socket " << socket;
     myClose( socket );
     delete pClientHandler;
 }
@@ -266,7 +266,7 @@ void ServerSocket::onConnect( const Event& ev )
             }
             else
             {
-                WARN << std::strerror( errno );
+                LOG_WARN << std::strerror( errno );
             }
 
             // no clients connected, return
@@ -274,7 +274,7 @@ void ServerSocket::onConnect( const Event& ev )
         }
 
         // DEBUG
-        DEBUG << "CONNECT: client @ " << client;
+        LOG_DEBUG << "CONNECT: client @ " << client;
 
         if ( addrClient.sa_family == AF_INET || addrClient.sa_family == AF_INET6 )
         {
@@ -295,18 +295,18 @@ void ServerSocket::onConnect( const Event& ev )
                                     NI_NUMERICHOST | NI_NUMERICSERV );
             if ( status == 0 )
             {
-                DEBUG << "client from " << host << ":" << service;
+                LOG_DEBUG << "client from " << host << ":" << service;
             }
             else
             {
-                WARN << ::gai_strerror( status );
+                LOG_WARN << ::gai_strerror( status );
             }
         }
 
         if ( !pClientHandler->add( client ) )
         {
             // DEBUG
-            DEBUG << "DISCONNECT: client @ " << socket;
+            LOG_DEBUG << "DISCONNECT: client @ " << socket;
 
             // log error here
             ::close( client );

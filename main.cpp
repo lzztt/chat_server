@@ -20,7 +20,7 @@ class EchoServerApp : public WebSocketServerApp
 
     }
 
-    virtual void onMessage( std::vector<char> msg, int clientID ) override
+    virtual void onMessage( std::vector<unsigned char> msg, int clientID ) override
     {
         send( msg, clientID );
     }

@@ -26,14 +26,14 @@ currentEventFd( 0 )
 
 EventLoop::~EventLoop( )
 {
-    DEBUG << "destroyed";
+    LOG_DEBUG << "destroyed";
 }
 
 bool EventLoop::registerEvent( const Event& ev ) noexcept
 {
     if ( currentEventFd > 0 && currentEventFd == ev.fd )
     {
-        ERROR << "trying to register an existing event which will overwrite the current event. fd=" << currentEventFd;
+        LOG_ERROR << "trying to register an existing event which will overwrite the current event. fd=" << currentEventFd;
         return false;
     }
 
@@ -60,7 +60,7 @@ bool EventLoop::registerEvent( const Event& ev ) noexcept
 
     if ( status == -1 )
     {
-        ERROR << std::strerror( errno );
+        LOG_ERROR << std::strerror( errno );
         return false;
     }
 
@@ -69,7 +69,7 @@ bool EventLoop::registerEvent( const Event& ev ) noexcept
 
 bool EventLoop::unregisterEvent( const Event& ev ) noexcept
 {
-    DEBUG << "unregister event " << ev.fd;
+    LOG_DEBUG << "unregister event " << ev.fd;
     epoll_event epev = {0};
     ::epoll_ctl( fd, EPOLL_CTL_DEL, ev.fd, &epev );
 
@@ -95,7 +95,7 @@ void EventLoop::run( ) noexcept
 
     if ( fd == -1 )
     {
-        ERROR << "no event loop available";
+        LOG_ERROR << "no event loop available";
         return;
     }
 
@@ -115,11 +115,11 @@ void EventLoop::run( ) noexcept
                 // interrupted by a signal handler
                 // log here
                 // signal handler?
-                DEBUG << "signal interrupted";
+                LOG_DEBUG << "signal interrupted";
             }
             else
             {
-                ERROR << std::strerror( errno );
+                LOG_ERROR << std::strerror( errno );
             }
 
             continue;
@@ -132,7 +132,7 @@ void EventLoop::run( ) noexcept
             Event& evo = *(static_cast<Event*> (epev.data.ptr));
             evo.events = epev.events;
             // DEBUG
-            DEBUG << "get event: " << evo.fd << " [" << evo.events << "]";
+            LOG_DEBUG << "get event: " << evo.fd << " [" << evo.events << "]";
 
             // unregister error event
             if ( !evo.isError( ) )

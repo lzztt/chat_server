@@ -10,22 +10,27 @@
 
 #include "MessageHandler.hpp"
 #include "DataFrameParser.hpp"
+#include "WebSocketServerApp.hpp"
 
 class DataFrameHandler : public MessageHandler
 {
 public:
 
-    explicit DataFrameHandler();
+    explicit DataFrameHandler(WebSocketServerApp* pServerApp, int clientID) :
+    pServerApp(pServerApp),
+    myClientID(clientID)
+    {
+    }
 
     DataFrameHandler(const DataFrameHandler& other) = delete;
     DataFrameHandler& operator=(const DataFrameHandler& other) = delete;
 
-    DataFrameHandler(DataFrameHandler&& other);
-    DataFrameHandler& operator=(DataFrameHandler&& other);
+    DataFrameHandler(DataFrameHandler&& other) = delete;
+    DataFrameHandler& operator=(DataFrameHandler&& other) = delete;
 
-    virtual ~DataFrameHandler();
+    virtual ~DataFrameHandler() = default;
 
-    virtual bool process(SocketInStream& in, SocketOutStream& out);
+    virtual Status process(SocketInStream& in, SocketOutStream& out) override;
 
 private:
     bool myHandleMessage(SocketOutStream& out);
@@ -40,6 +45,8 @@ private:
     DataFrameParser myParser;
 
     std::string myMessage;
+    WebSocketServerApp* pServerApp;
+    int myClientID;
 };
 
 #endif	/* DATAFRAMEHANDLER_HPP */

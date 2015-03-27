@@ -19,7 +19,7 @@ std::deque<std::unique_ptr<char[] >> SocketInStream::Buffer::pool = std::deque<s
 
 SocketInStream::Buffer::Buffer( )
 {
-    DEBUG << "buffer created";
+    LOG_DEBUG << "buffer created";
     if ( !pool.empty( ) )
     {
         pBegin = pEnd = pData = pool.front( ).release( );
@@ -28,7 +28,7 @@ SocketInStream::Buffer::Buffer( )
     else
     {
         pBegin = pEnd = pData = new char[BUFSIZE];
-        if ( !pData ) ERROR << "failed to allocate " << BUFSIZE << " bytes as buffer memory ";
+        if ( !pData ) LOG_ERROR << "failed to allocate " << BUFSIZE << " bytes as buffer memory ";
     }
 }
 
@@ -37,13 +37,13 @@ pData( other.pData ),
 pBegin( other.pBegin ),
 pEnd( other.pEnd )
 {
-    DEBUG << "moved from " << &other;
+    LOG_DEBUG << "moved from " << &other;
     other.pBegin = other.pEnd = other.pData = nullptr;
 }
 
 SocketInStream::Buffer& SocketInStream::Buffer::operator=(SocketInStream::Buffer&& other)
 {
-    DEBUG << "moved from " << &other;
+    LOG_DEBUG << "moved from " << &other;
     if ( this != &other )
     {
         pData = other.pData;
@@ -145,14 +145,14 @@ ssize_t SocketInStream::recv( const int socket )
                     else
                     {
                         // recv error
-                        ERROR << "socket " << socket << " closed (" << strerror( errno ) << ")";
+                        LOG_ERROR << "socket " << socket << " closed (" << strerror( errno ) << ")";
                         return count;
                     }
                 }
                 else
                 {
                     // socket closed
-                    ERROR << "socket " << socket << " closed";
+                    LOG_ERROR << "socket " << socket << " closed";
                     return -1;
                 }
             }
@@ -162,7 +162,7 @@ ssize_t SocketInStream::recv( const int socket )
         if ( nLeft < bufSize )
         {
             nWriten = bufSize - nLeft;
-            DEBUG << "recv " << nWriten << " bytes";
+            LOG_DEBUG << "recv " << nWriten << " bytes";
             nRecv += nWriten;
             buf.push_back( nWriten );
             buffers.push_back( std::move( buf ) );

@@ -14,17 +14,25 @@
 class MessageHandler
 {
 public:
-    explicit MessageHandler();
+
+    enum class Status : int
+    {
+        PARSING,
+        SUCCESS,
+        ERROR
+    };
+
+    MessageHandler() = default;
 
     MessageHandler(const MessageHandler& other) = delete;
     MessageHandler& operator=(const MessageHandler& other) = delete;
 
-    MessageHandler(MessageHandler&& other);
-    MessageHandler& operator=(MessageHandler&& other);
+    MessageHandler(MessageHandler&& other) = delete;
+    MessageHandler& operator=(MessageHandler&& other) = delete;
 
-    virtual ~MessageHandler();
+    virtual ~MessageHandler() = default;
 
-    virtual bool process(SocketInStream& in, SocketOutStream& out) = 0;
+    virtual Status process(SocketInStream& in, SocketOutStream& out) = 0;
 };
 
 #endif	/* MESSAGEHANDLER_HPP */

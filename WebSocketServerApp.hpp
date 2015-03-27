@@ -16,15 +16,10 @@
 
 class WebSocketServerApp
 {
-    friend class ServerSocket;
     friend class ClientSocketHandler;
 public:
 
-    WebSocketServerApp() :
-    myClientHandler(ClientSocketHandler(&myEventLoop)),
-    mySendEventFd(::eventfd(0, 0))
-    {
-    }
+    WebSocketServerApp();
 
     WebSocketServerApp(const WebSocketServerApp& other) = delete;
     WebSocketServerApp& operator=(const WebSocketServerApp& other) = delete;
@@ -38,19 +33,19 @@ public:
     virtual void onOpen(int clientID) = 0;
     virtual void onClose(int clientID) = 0;
     virtual void onMessage(std::string msg, int clientID) = 0;
-    virtual void onMessage(std::vector<char> msg, int clientID) = 0;
+    virtual void onMessage(std::vector<unsigned char> msg, int clientID) = 0;
 
     // copy message
     virtual void send(std::string msg, int clientID) final;
-    virtual void send(std::vector<char> msg, int clientID) final;
+    virtual void send(std::vector<unsigned char> msg, int clientID) final;
     virtual void send(std::string msg, std::vector<int> clientIDs) final;
-    virtual void send(std::vector<char> msg, std::vector<int> clientIDs) final;
+    virtual void send(std::vector<unsigned char> msg, std::vector<int> clientIDs) final;
 
     // move message
     virtual void send(std::string&& msg, int clientID) final;
-    virtual void send(std::vector<char>&& msg, int clientID) final;
+    virtual void send(std::vector<unsigned char>&& msg, int clientID) final;
     virtual void send(std::string&& msg, std::vector<int> clientIDs) final;
-    virtual void send(std::vector<char>&& msg, std::vector<int> clientIDs) final;
+    virtual void send(std::vector<unsigned char>&& msg, std::vector<int> clientIDs) final;
 
     // close client
     virtual void close(int clientID) final;

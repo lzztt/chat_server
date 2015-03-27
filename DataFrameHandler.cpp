@@ -11,23 +11,7 @@
 #include "DataFrameHandler.hpp"
 #include "Log.hpp"
 
-DataFrameHandler::DataFrameHandler( )
-{
-}
-
-DataFrameHandler::DataFrameHandler( DataFrameHandler&& other )
-{
-}
-
-DataFrameHandler& DataFrameHandler::operator=(DataFrameHandler&& other)
-{
-}
-
-DataFrameHandler::~DataFrameHandler( )
-{
-}
-
-bool DataFrameHandler::process( SocketInStream& in, SocketOutStream& out )
+MessageHandler::Status DataFrameHandler::process( SocketInStream& in, SocketOutStream& out )
 {
     while ( !in.empty( ) )
     {
@@ -62,13 +46,13 @@ bool DataFrameHandler::process( SocketInStream& in, SocketOutStream& out )
                 case WS_OPCODE_CLOSE:
                     // single close message
                     mySendCloseFrame( out );
-                    return false;
+                    return Status::ERROR;
                     break;
 
                 default:
                     // unsupported opcode
                     mySendCloseFrame( out );
-                    return false;
+                    return Status::ERROR;
                     break;
                 }
             }
@@ -77,13 +61,13 @@ bool DataFrameHandler::process( SocketInStream& in, SocketOutStream& out )
                 // get a message fragment
                 if ( myHandleFragmentFrame( out ) == false )
                 {
-                    in.clear( );
-                    return false;
+                    return Status::ERROR;
                 }
             }
             break;
 
         case DataFrameParser::Status::PARSING:
+            Status::PARSING;
             break;
 
         case DataFrameParser::Status::UNRELEASED_DATA:
@@ -92,33 +76,33 @@ bool DataFrameHandler::process( SocketInStream& in, SocketOutStream& out )
 
         case DataFrameParser::Status::BAD_MASK_BIT:
             myHandleBadMaskBit( out );
-            in.clear( );
-            return false;
+            return Status::ERROR;
             break;
 
         case DataFrameParser::Status::BAD_PAYLOAD_LENGTH:
             myHandleBadPayloadLength( out );
             in.clear( );
-            return false;
+            return Status::ERROR;
             break;
 
         default:
-            ERROR << "not handled parse status returned from parser";
+            LOG_ERROR << "not handled parse status returned from parser";
         }
     }
 
-    return true;
+    return Status::SUCCESS;
 }
 
 bool DataFrameHandler::myHandleMessage( SocketOutStream& out )
 {
     std::unique_ptr<char[] > buf;
     size_t count = myParser.getData( buf );
-    INFO << "get message (" << count << " bytes) : " << std::string( buf.get( ), count );
+    LOG_INFO << "get message (" << count << " bytes) : " << std::string( buf.get( ), count );
 
     std::string msg( buf.get( ), count );
     // msg handler call
     // return a response
+    pServerApp->onMessage( msg, myClientID );
     std::string resp( std::move( msg ) );
 
     // build response header
@@ -147,7 +131,7 @@ bool DataFrameHandler::myHandleMessage( SocketOutStream& out )
     else
     {
         // too big, not handling
-        ERROR << "response size if too big: " << dataLength;
+        LOG_ERROR << "response size if too big: " << dataLength;
     }
 
     out.add( std::string( header, headerLength ) );
@@ -168,7 +152,7 @@ bool DataFrameHandler::myHandleFragmentFrame( SocketOutStream& out )
 
         case WS_OPCODE_BINARY:
             // TODO: not supported
-            ERROR << "BINARY frame type is not supported yet!";
+            LOG_ERROR << "BINARY frame type is not supported yet!";
             mySendCloseFrame( out );
             return false;
             break;
@@ -194,7 +178,7 @@ bool DataFrameHandler::myHandleFragmentFrame( SocketOutStream& out )
 
     std::unique_ptr<char[] > buf;
     size_t count = myParser.getData( buf );
-    myMessage.append( buf.get(), count );
+    myMessage.append( buf.get( ), count );
 
     if ( header.fin )
     {
@@ -207,32 +191,32 @@ bool DataFrameHandler::myHandleFragmentFrame( SocketOutStream& out )
 
 void DataFrameHandler::myHandleUnrealsedData( SocketOutStream& out )
 {
-    ERROR << "get unreleased data";
+    LOG_ERROR << "get unreleased data";
     myHandleMessage( out );
 }
 
 void DataFrameHandler::myHandleBadMaskBit( SocketOutStream& out )
 {
-    ERROR << "bad mask bit";
+    LOG_ERROR << "bad mask bit";
     mySendCloseFrame( out );
 }
 
 void DataFrameHandler::myHandleBadPayloadLength( SocketOutStream& out )
 {
-    ERROR << "bad payload length";
+    LOG_ERROR << "bad payload length";
     mySendCloseFrame( out );
 }
 
 void DataFrameHandler::mySendCloseFrame( SocketOutStream& out )
 {
-    INFO << "sending CLOSE frame";
+    LOG_INFO << "sending CLOSE frame";
     char close[2] = {(char) 0x88, (char) 0x00};
     out.add( std::string( close, 2 ) );
 }
 
 void DataFrameHandler::mySendPongFrame( SocketOutStream& out )
 {
-    INFO << "sending PONG frame";
+    LOG_INFO << "sending PONG frame";
     std::unique_ptr<char[] > pData;
     size_t count = myParser.getData( pData );
     if ( count == 0 )

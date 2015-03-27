@@ -13,12 +13,12 @@
 #include <iostream>
 #include <iomanip>
 
-#define DEBUG if(true) Log::Debug( this, __PRETTY_FUNCTION__, __FILE__, __LINE__ )
-#define SDEBUG if(true) Log::Debug( nullptr, __PRETTY_FUNCTION__, __FILE__, __LINE__ )
+#define LOG_DEBUG if(true) Log::Debug( this, __PRETTY_FUNCTION__, __FILE__, __LINE__ )
+#define LOG_SDEBUG if(true) Log::Debug( nullptr, __PRETTY_FUNCTION__, __FILE__, __LINE__ )
 
-#define INFO if(true) Log::Info()
-#define WARN if(true) Log::Warn()
-#define ERROR if(true) Log::Error()
+#define LOG_INFO if(true) Log::Info()
+#define LOG_WARN if(true) Log::Warn()
+#define LOG_ERROR if(true) Log::Error()
 
 namespace Log
 {

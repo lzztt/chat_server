@@ -38,8 +38,8 @@ HandshakeParser::Status HandshakeParser::parse( SocketInStream& in )
     while ( !in.empty( ) && myStatus == Status::PARSING )
     {
         nLeft = count = in.getData( &pData );
-        INFO << "in.getData = " << count;
-        DEBUG << std::string( pData, count );
+        LOG_INFO << "in.getData = " << count;
+        LOG_DEBUG << std::string( pData, count );
 
         while ( nLeft > 0 && myState < State::END )
         {
@@ -57,7 +57,7 @@ HandshakeParser::Status HandshakeParser::parse( SocketInStream& in )
                     else
                     {
                         // 400 bad request
-                        ERROR << "method not allowed";
+                        LOG_ERROR << "method not allowed";
                         myStatus = Status::METHOD_NOT_ALLOWED;
                         in.clear( );
                         nLeft = 0;
@@ -71,7 +71,7 @@ HandshakeParser::Status HandshakeParser::parse( SocketInStream& in )
                     if ( *pData == '\r' || *pData == '\n' )
                     {
                         // 400 bad request
-                        ERROR << "bad request: unexpected end of line";
+                        LOG_ERROR << "bad request: unexpected end of line";
                         myStatus = Status::BAD_REQUEST;
                         in.clear( );
                         nLeft = 0;
@@ -93,7 +93,7 @@ HandshakeParser::Status HandshakeParser::parse( SocketInStream& in )
                     if ( *pData == '\r' || *pData == '\n' )
                     {
                         // 400 bad request
-                        ERROR << "bad request: unexpected end of line";
+                        LOG_ERROR << "bad request: unexpected end of line";
                         myStatus = Status::BAD_REQUEST;
                         in.clear( );
                         nLeft = 0;
@@ -107,7 +107,7 @@ HandshakeParser::Status HandshakeParser::parse( SocketInStream& in )
                     {
                         // empty URI
                         // 400 bad request
-                        ERROR << "bad request: empty URI";
+                        LOG_ERROR << "bad request: empty URI";
                         myStatus = Status::BAD_REQUEST;
                         in.clear( );
                         nLeft = 0;
@@ -140,7 +140,7 @@ HandshakeParser::Status HandshakeParser::parse( SocketInStream& in )
                     {
                         // 400 bad request
                         // log bad HTTP version
-                        ERROR << "HTTP version not supported";
+                        LOG_ERROR << "HTTP version not supported";
                         myStatus = Status::HTTP_VERSION_NOT_SUPPORTED;
                         in.clear( );
                         nLeft = 0;
@@ -206,7 +206,7 @@ HandshakeParser::Status HandshakeParser::parse( SocketInStream& in )
                         if ( *pData == '\r' || *pData == '\n' )
                         {
                             // 400 bad request
-                            ERROR << "bad request: unexpected end of line";
+                            LOG_ERROR << "bad request: unexpected end of line";
                             myStatus = Status::BAD_REQUEST;
                             in.clear( );
                             nLeft = 0;
@@ -256,7 +256,7 @@ HandshakeParser::Status HandshakeParser::parse( SocketInStream& in )
                     if ( *pData == '\r' || *pData == '\n' )
                     {
                         // 400 bad request
-                        ERROR << "bad request: unexpected end of line";
+                        LOG_ERROR << "bad request: unexpected end of line";
                         myStatus = Status::BAD_REQUEST;
                         in.clear( );
                         nLeft = 0;
@@ -341,20 +341,20 @@ HandshakeParser::Status HandshakeParser::parse( SocketInStream& in )
                 break;
 
             default:
-                ERROR << "unsupported parsing state";
+                LOG_ERROR << "unsupported parsing state";
             }
         }
 
         if ( myState == State::END )
         {
-            INFO << "in.pop_front = " << count - nLeft;
+            LOG_INFO << "in.pop_front = " << count - nLeft;
             in.pop_front( count - nLeft );
             nLeft = 0;
         }
         else
         {
             // continue to load next buffer
-            INFO << "in.pop_front = " << count;
+            LOG_INFO << "in.pop_front = " << count;
             in.pop_front( count );
         }
     }
@@ -372,14 +372,14 @@ HandshakeParser::Status HandshakeParser::myValidateHeaders( )
     // DEBUG
     for ( auto iter = myHeaders.begin( ), iterE = myHeaders.end( ); iter != iterE; ++iter )
     {
-        INFO << "HDR: " << iter->first << " : " << iter->second;
+        LOG_INFO << "HDR: " << iter->first << " : " << iter->second;
     }
 
     // validate |Host| header
     auto iter = myHeaders.find( "HOST" );
     if ( iter == myHeaders.end( ) )
     {
-        ERROR << "|Host| header not found";
+        LOG_ERROR << "|Host| header not found";
         return Status::BAD_REQUEST;
     }
 
@@ -387,14 +387,14 @@ HandshakeParser::Status HandshakeParser::myValidateHeaders( )
     iter = myHeaders.find( "UPGRADE" );
     if ( iter == myHeaders.end( ) )
     {
-        ERROR << "|Upgrade| header not found";
+        LOG_ERROR << "|Upgrade| header not found";
         return Status::BAD_REQUEST;
     }
     else
     {
         if ( iter->second.find( "websocket" ) == iter->second.npos )
         {
-            ERROR << "|Upgrade| header does not contains \"websocket\"";
+            LOG_ERROR << "|Upgrade| header does not contains \"websocket\"";
             return Status::BAD_REQUEST;
         }
     }
@@ -403,14 +403,14 @@ HandshakeParser::Status HandshakeParser::myValidateHeaders( )
     iter = myHeaders.find( "CONNECTION" );
     if ( iter == myHeaders.end( ) )
     {
-        ERROR << "|Connection| header not found";
+        LOG_ERROR << "|Connection| header not found";
         return Status::BAD_REQUEST;
     }
     else
     {
         if ( iter->second.find( "Upgrade" ) == iter->second.npos )
         {
-            ERROR << "|Connection| header does not contains \"Upgrade\"";
+            LOG_ERROR << "|Connection| header does not contains \"Upgrade\"";
             return Status::BAD_REQUEST;
         }
     }
@@ -421,14 +421,14 @@ HandshakeParser::Status HandshakeParser::myValidateHeaders( )
     iter = myHeaders.find( "SEC-WEBSOCKET-VERSION" );
     if ( iter == myHeaders.end( ) )
     {
-        ERROR << "|Sec-WebSocket-Version| header not found";
+        LOG_ERROR << "|Sec-WebSocket-Version| header not found";
         return Status::BAD_REQUEST;
     }
     else
     {
         if ( iter->second != "13" )
         {
-            ERROR << "|Sec-WebSocket-Version| header is not equal to 13";
+            LOG_ERROR << "|Sec-WebSocket-Version| header is not equal to 13";
             return Status::BAD_REQUEST;
         }
     }
@@ -437,7 +437,7 @@ HandshakeParser::Status HandshakeParser::myValidateHeaders( )
     iter = myHeaders.find( "SEC-WEBSOCKET-KEY" );
     if ( iter == myHeaders.end( ) )
     {
-        ERROR << "|Sec-WebSocket-Key| header not found";
+        LOG_ERROR << "|Sec-WebSocket-Key| header not found";
         return Status::BAD_REQUEST;
     }
     else
@@ -445,7 +445,7 @@ HandshakeParser::Status HandshakeParser::myValidateHeaders( )
         // 16 bytes source base64 encoded to 24 bytes
         if ( iter->second.length( ) != 24 )
         {
-            ERROR << "|Sec-WebSocket-Key| header is not 16 bytes";
+            LOG_ERROR << "|Sec-WebSocket-Key| header is not 16 bytes";
             return Status::BAD_REQUEST;
         }
         else

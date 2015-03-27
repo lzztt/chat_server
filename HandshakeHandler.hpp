@@ -14,17 +14,17 @@
 class HandshakeHandler : public MessageHandler
 {
 public:
-    explicit HandshakeHandler();
+    explicit HandshakeHandler() = default;
 
     HandshakeHandler(const HandshakeHandler& other) = delete;
     HandshakeHandler& operator=(const HandshakeHandler& other) = delete;
 
-    HandshakeHandler(HandshakeHandler&& other);
-    HandshakeHandler& operator=(HandshakeHandler&& other);
+    HandshakeHandler(HandshakeHandler&& other) = delete;
+    HandshakeHandler& operator=(HandshakeHandler&& other) = delete;
 
-    virtual ~HandshakeHandler();
+    virtual ~HandshakeHandler() = default;
 
-    virtual bool process(SocketInStream& in, SocketOutStream& out);
+    virtual Status process(SocketInStream& in, SocketOutStream& out) override;
 
 private:
     void myHandleSwitchingProtocols(SocketOutStream& out);

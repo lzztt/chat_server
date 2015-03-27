@@ -16,7 +16,7 @@ fd( fd ),
 events( events | EPOLLRDHUP | EPOLLET ),
 handler( std::move( handler ) )
 {
-    DEBUG << "created";
+    LOG_DEBUG << "created";
 }
 
 Event::Event( Event&& other ) :
@@ -24,12 +24,12 @@ fd( other.fd ),
 events( other.events ),
 handler( std::move( other.handler ) )
 {
-    DEBUG << "moved from " << &other;
+    LOG_DEBUG << "moved from " << &other;
 }
 
 Event& Event::operator=(Event&& other)
 {
-    DEBUG << "moved from " << &other;
+    LOG_DEBUG << "moved from " << &other;
     if ( this != &other )
     {
         fd = other.fd;
@@ -42,7 +42,7 @@ Event& Event::operator=(Event&& other)
 
 Event::~Event( )
 {
-    DEBUG << "destroyed";
+    LOG_DEBUG << "destroyed";
 }
 
 int Event::getFd( ) const
