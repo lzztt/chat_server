@@ -11,78 +11,38 @@
 #include "ClientSocketHandler.hpp"
 #include "WebSocketServerApp.hpp"
 #include "Log.hpp"
-#include "SocketInStream.hpp"
-#include "SocketOutStream.hpp"
-#include "MessageHandler.hpp"
 #include "HandshakeHandler.hpp"
 #include "DataFrameHandler.hpp"
 
-class ClientSocketHandler::Stream
+void ClientSocketHandler::Stream::init( )
 {
-public:
+    state = State::CONNECTING;
+    if ( handler ) delete handler;
+    handler = dynamic_cast<MessageHandler*> (new HandshakeHandler( ));
+}
 
-    enum class State : int
+void ClientSocketHandler::Stream::open( WebSocketServerApp* pServerApp, int socket )
+{
+    // OPENING: handshake finished
+    state = State::OPEN;
+    delete handler;
+    handler = dynamic_cast<MessageHandler*> (new DataFrameHandler( pServerApp, socket ));
+}
+
+void ClientSocketHandler::Stream::close( )
+{
+    if ( state != State::CLOSED )
     {
-        CONNECTING,
-        OPEN,
-        CLOSING,
-        CLOSED
-    };
-
-    Stream( ) :
-    state( State::CLOSED ),
-    handler( nullptr )
-    {
-        LOG_DEBUG << "created";
-    }
-
-    Stream( const Stream& other ) = delete;
-    Stream& operator=(const Stream& other) = delete;
-
-    Stream( Stream&& other ) = default;
-    Stream& operator=(Stream&& other) = default;
-
-    ~Stream( )
-    {
-        LOG_DEBUG << "destroyed";
-        if ( handler ) delete handler;
-    }
-
-    void init( )
-    {
-        state = State::CONNECTING;
-        if ( handler ) delete handler;
-        handler = dynamic_cast<MessageHandler*> (new HandshakeHandler( ));
-    }
-
-    void open( WebSocketServerApp* pServerApp, int socket )
-    {
-        // OPENING: handshake finished
-        state = State::OPEN;
-        delete handler;
-        handler = dynamic_cast<MessageHandler*> (new DataFrameHandler( pServerApp, socket ));
-    }
-
-    void close( )
-    {
-        if ( state != State::CLOSED )
+        state = State::CLOSED;
+        if ( !handler )
         {
-            state = State::CLOSED;
-            if ( !handler )
-            {
-                delete handler;
-                handler = nullptr;
-            }
-            in.clear( );
-            out.clear( );
+            delete handler;
+            handler = nullptr;
         }
+        in.clear( );
+        out.clear( );
     }
-
-    SocketInStream in;
-    SocketOutStream out;
-    State state;
-    MessageHandler* handler;
-};
+}
 
 ClientSocketHandler::ClientSocketHandler( WebSocketServerApp* pServerApp ) :
 pServerApp( pServerApp )
@@ -195,14 +155,18 @@ void ClientSocketHandler::onRecv( const Event& ev )
         }
 
         // process message for CONNECTING and OPEN state
-        // we really should only pass the in stream for message
-        // for handshaking, we may pass the out stream too
         switch ( stream.handler->process( stream.in, stream.out ) )
         {
         case MessageHandler::Status::SUCCESS:
             if ( stream.state == Stream::State::CONNECTING )
             {
                 stream.open( pServerApp, socket );
+                // just finished handshake, connection is OPEN
+                // there should be no data received further before OPEN, otherwise clear
+                if ( !stream.in.empty( ) ) stream.in.clear( );
+
+                // there should be a HTTP UPGRADE response, otherwise close
+                if ( stream.out.empty( ) ) onError( ev );
             }
             break;
 
@@ -220,7 +184,8 @@ void ClientSocketHandler::onRecv( const Event& ev )
 
                 if ( stream.out.empty( ) )
                 {
-                    stream.close( );
+                    // just close if nothing to send
+                    onError( ev );
                 }
                 else
                 {
@@ -229,6 +194,21 @@ void ClientSocketHandler::onRecv( const Event& ev )
                 }
             }
             break;
+        }
+
+        // have something to send, try sending NOW
+        if ( !stream.out.empty( ) )
+        {
+            if ( stream.out.send( socket ) < 0 )
+            {
+                onError( ev );
+            }
+
+            // close CLOSING stream, if flush the out stream
+            if ( stream.out.empty( ) && stream.state == Stream::State::CLOSING )
+            {
+                onError( ev );
+            }
         }
     }
     else if ( count < 0 )
@@ -253,7 +233,7 @@ void ClientSocketHandler::onSend( const Event& ev )
         // close CLOSING stream, if flush the out stream
         if ( stream.out.empty( ) && stream.state == Stream::State::CLOSING )
         {
-            stream.close( );
+            onError( ev );
         }
     }
 }

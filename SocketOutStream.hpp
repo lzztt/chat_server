@@ -10,14 +10,18 @@
 
 #include <deque>
 #include <string>
+#include <vector>
+#include <utility>
+
+class WebSocketServerApp;
 
 class SocketOutStream
 {
+    friend WebSocketServerApp;
+
 public:
 
-    SocketOutStream()
-    {
-    }
+    SocketOutStream() = default;
 
     SocketOutStream(const SocketOutStream& other) = delete;
     SocketOutStream& operator=(const SocketOutStream& other) = delete;
@@ -42,6 +46,11 @@ public:
     {
         buffers.push_back(Buffer(std::move(str)));
     }
+    
+    void add(std::vector<unsigned char>&& binary)
+    {
+        buffers.push_back(Buffer(std::move(binary)));
+    }
 
     void add(int fd)
     {
@@ -57,14 +66,21 @@ public:
     {
         buffers.clear();
     }
-    
+
     ssize_t send(const int socket);
 
 private:
 
-    class Buffer
+    class Data
     {
     public:
+
+        enum class Type : int
+        {
+            TEXT,
+            BINARY,
+            FILE
+        };
 
         struct File
         {
@@ -72,16 +88,59 @@ private:
             size_t size;
         };
 
+        Data(std::string&& str) :
+        type(Data::Type::TEXT),
+        str(std::move(str))
+        {
+        }
+
+        Data(std::vector<unsigned char>&& binary) :
+        type(Data::Type::BINARY),
+        binary(std::move(binary))
+        {
+        }
+
+        Data(Data::File file) :
+        type(Data::Type::FILE),
+        file(file)
+        {
+        }
+
+        Data(const Data& other) = delete;
+        Data& operator=(const Data& other) = delete;
+        Data(Data&& other) = default;
+        Data& operator=(Data&& other) = default;
+        ~Data() = default;
+        
+        void clear()
+        {
+            str.clear();
+            binary.clear();
+            file = {0};
+        }
+
+        Type type;
+        std::string str;
+        std::vector<unsigned char> binary;
+        File file;
+    };
+
+    class Buffer
+    {
+    public:
         Buffer(int fd);
         Buffer(std::string&& str);
+        Buffer(std::vector<unsigned char>&& binary);
+        Buffer(Data data);
+        Buffer(Data&& data);
+
         Buffer(const Buffer& other) = delete;
         Buffer& operator=(const Buffer& other) = delete;
         Buffer(Buffer&& other);
         Buffer& operator=(Buffer&& other);
         ~Buffer();
 
-        std::string str;
-        File file;
+        Data data;
         off_t offset;
     };
 

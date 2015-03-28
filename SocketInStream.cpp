@@ -15,7 +15,7 @@
 #define POOLSIZE 1000
 
 // initialize static pool
-std::deque<std::unique_ptr<char[] >> SocketInStream::Buffer::pool = std::deque<std::unique_ptr<char[] >>();
+std::deque<std::unique_ptr<unsigned char[] >> SocketInStream::Buffer::pool = std::deque<std::unique_ptr<unsigned char[] >>();
 
 SocketInStream::Buffer::Buffer( )
 {
@@ -27,7 +27,7 @@ SocketInStream::Buffer::Buffer( )
     }
     else
     {
-        pBegin = pEnd = pData = new char[BUFSIZE];
+        pBegin = pEnd = pData = new unsigned char[BUFSIZE];
         if ( !pData ) LOG_ERROR << "failed to allocate " << BUFSIZE << " bytes as buffer memory ";
     }
 }
@@ -61,7 +61,7 @@ SocketInStream::Buffer::~Buffer( )
     {
         if ( pool.size( ) < POOLSIZE )
         {
-            pool.push_back( std::unique_ptr<char[]>(pData) );
+            pool.push_back( std::unique_ptr<unsigned char[]>(pData) );
         }
         else
         {
@@ -92,14 +92,14 @@ void SocketInStream::Buffer::push_back( off_t count )
     if ( pEnd > pData + BUFSIZE ) pEnd = pData + BUFSIZE;
 }
 
-size_t SocketInStream::Buffer::getReadableBuffer( const char** ppBuf ) const
+size_t SocketInStream::Buffer::getReadableBuffer( const unsigned char** ppBuf ) const
 {
     size_t available = pEnd - pBegin;
     *ppBuf = available ? pBegin : nullptr;
     return available;
 }
 
-size_t SocketInStream::Buffer::getWritableBuffer( char** ppBuf ) const
+size_t SocketInStream::Buffer::getWritableBuffer( unsigned char** ppBuf ) const
 {
     size_t left = pData + BUFSIZE - pEnd;
     *ppBuf = left ? pEnd : nullptr;
@@ -113,7 +113,7 @@ void SocketInStream::Buffer::clear( )
 
 ssize_t SocketInStream::recv( const int socket )
 {
-    char* pData = nullptr;
+    unsigned char* pData = nullptr;
     ssize_t nRecv = 0, count = 0;
     size_t bufSize = 0, nLeft = 0, nWriten = 0;
 
@@ -174,7 +174,7 @@ ssize_t SocketInStream::recv( const int socket )
     return nRecv;
 }
 
-size_t SocketInStream::getData( const char** ppBuffer )
+size_t SocketInStream::getData( const unsigned char** ppBuffer )
 {
     if ( !buffers.empty( ) )
     {
@@ -216,7 +216,7 @@ void SocketInStream::pop_front( off_t count )
     }
 }
 
-bool SocketInStream::extract( char* buf, size_t count )
+bool SocketInStream::extract( unsigned char* buf, size_t count )
 {
     if ( count > mySize )
     {
@@ -227,7 +227,7 @@ bool SocketInStream::extract( char* buf, size_t count )
     mySize -= count;
 
     // extract data
-    const char* pData = nullptr;
+    const unsigned char* pData = nullptr;
     size_t size = 0;
     while ( count > 0 )
     {
@@ -249,7 +249,7 @@ bool SocketInStream::extract( char* buf, size_t count )
     return true;
 }
 
-bool SocketInStream::maskExtract( char* buf, size_t count, const char* mask, size_t maskCount, size_t maskStart )
+bool SocketInStream::maskExtract( unsigned char* buf, size_t count, const unsigned char* mask, size_t maskCount, size_t maskStart )
 {
     if ( count > mySize )
     {
@@ -260,7 +260,7 @@ bool SocketInStream::maskExtract( char* buf, size_t count, const char* mask, siz
     mySize -= count;
 
     // extract data
-    const char* pData = nullptr;
+    const unsigned char* pData = nullptr;
     size_t size = 0;
     while ( count > 0 )
     {

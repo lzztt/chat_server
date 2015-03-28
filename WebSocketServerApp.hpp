@@ -57,6 +57,9 @@ private:
     EventLoop myEventLoop;
     ClientSocketHandler myClientHandler;
     int mySendEventFd;
+    std::vector<int> clientIDs;
+    std::vector<int> messageIDs;
+    std::deque<SocketOutStream::Data> messages;    
 };
 
 #endif	/* WEBSOCKETSERVERAPP_HPP */

@@ -15,7 +15,7 @@ namespace
 {
 
     template<typename T>
-    void myExtract( T& dest, const char** ppData, size_t& nLeft, SocketInStream& in, size_t& nPop, size_t& nTotal )
+    void myExtract( T& dest, const unsigned char** ppData, size_t& nLeft, SocketInStream& in, size_t& nPop, size_t& nTotal )
     {
         // load a new buffer?
         if ( nLeft == 0 )
@@ -51,7 +51,7 @@ namespace
             }
 
             // extract directly from inStream
-            in.extract( (char*) &dest, count );
+            in.extract( (unsigned char*) &dest, count );
             // get updated steam size
             nTotal = in.size( );
             // invalidate current buffer
@@ -59,7 +59,7 @@ namespace
         }
     }
 
-    void myExtract( char* pDest, size_t count, const char** ppData, size_t& nLeft, SocketInStream& in, size_t& nPop, size_t& nTotal )
+    void myExtract( unsigned char* pDest, size_t count, const unsigned char** ppData, size_t& nLeft, SocketInStream& in, size_t& nPop, size_t& nTotal )
     {
         // load a new buffer?
         if ( nLeft == 0 )
@@ -147,7 +147,7 @@ DataFrameParser::Status DataFrameParser::parse( SocketInStream& in )
     }
 
     size_t nLeft = 0, nPop = 0;
-    const char *pData = nullptr;
+    const unsigned char *pData = nullptr;
 
     size_t nTotal = in.size( );
 
@@ -156,7 +156,7 @@ DataFrameParser::Status DataFrameParser::parse( SocketInStream& in )
         // we need at least 2 bytes to process
         if ( nTotal >= 2 )
         {
-            char header[2];
+            unsigned char header[2];
             myExtract( header, 2, &pData, nLeft, in, nPop, nTotal );
             // parse header
             myHeader.fin = (header[0] & 0x80) >> 7;
@@ -275,7 +275,7 @@ DataFrameParser::Status DataFrameParser::parse( SocketInStream& in )
         // first time to parse data
         if ( myDataLength == 0 )
         {
-            myData = std::unique_ptr<char[]>(new char[myPayloadLength]);
+            myData = std::unique_ptr<unsigned char[]>(new unsigned char[myPayloadLength]);
         }
 
         size_t nToRead = myPayloadLength - myDataLength;
@@ -295,7 +295,7 @@ DataFrameParser::Status DataFrameParser::parse( SocketInStream& in )
     }
 }
 
-size_t DataFrameParser::getData( std::unique_ptr<char[]>& pData )
+size_t DataFrameParser::getData( std::unique_ptr<unsigned char[]>& pData )
 {
     if ( myState == State::END && myDataLength > 0 )
     {

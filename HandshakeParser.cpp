@@ -37,7 +37,7 @@ HandshakeParser::Status HandshakeParser::parse( SocketInStream& in )
 
     while ( !in.empty( ) && myStatus == Status::PARSING )
     {
-        nLeft = count = in.getData( &pData );
+        nLeft = count = in.getData( (const unsigned char**) &pData );
         LOG_INFO << "in.getData = " << count;
         LOG_DEBUG << std::string( pData, count );
 

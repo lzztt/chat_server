@@ -12,11 +12,15 @@
 
 #include "Event.hpp"
 #include "EventLoop.hpp"
+#include "SocketInStream.hpp"
+#include "SocketOutStream.hpp"
+#include "MessageHandler.hpp"
 
 class WebSocketServerApp;
 
 class ClientSocketHandler
 {
+    friend class WebSocketServerApp;
 public:
     explicit ClientSocketHandler(WebSocketServerApp* pServerApp);
 
@@ -38,7 +42,45 @@ protected:
 
 private:
 
-    class Stream;
+    class Stream
+    {
+    public:
+
+        enum class State : int
+        {
+            CONNECTING,
+            OPEN,
+            CLOSING,
+            CLOSED
+        };
+
+        Stream() :
+        state(State::CLOSED),
+        handler(nullptr)
+        {
+        }
+
+        Stream(const Stream& other) = delete;
+        Stream& operator=(const Stream& other) = delete;
+
+        Stream(Stream&& other) = default;
+        Stream& operator=(Stream&& other) = default;
+
+        ~Stream()
+        {
+            if (handler) delete handler;
+        }
+
+        void init();
+        void open(WebSocketServerApp* pServerApp, int socket);
+        void close();
+
+        SocketInStream in;
+        SocketOutStream out;
+        State state;
+        MessageHandler* handler;
+    };
+    
     std::vector<Stream> streams;
     WebSocketServerApp* pServerApp;
 };

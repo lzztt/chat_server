@@ -54,7 +54,7 @@ public:
 
     Status parse(SocketInStream& in);
     
-    size_t getData(std::unique_ptr<char[]>& pData);
+    size_t getData(std::unique_ptr<unsigned char[]>& pData);
     
     Header& getHeader()
     {
@@ -76,8 +76,8 @@ private:
     State myState;
     Header myHeader;
     size_t myPayloadLength;
-    char myMask[4];
-    std::unique_ptr<char[] > myData;
+    unsigned char myMask[4];
+    std::unique_ptr<unsigned char[] > myData;
     size_t myDataLength;
 };
 

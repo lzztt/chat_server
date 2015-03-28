@@ -10,6 +10,7 @@
 #include "WebSocketServerApp.hpp"
 #include "ServerSocket.hpp"
 #include "EventLoop.hpp"
+#include "Log.hpp"
 
 WebSocketServerApp::WebSocketServerApp( ) :
 myClientHandler( ClientSocketHandler( this ) ),
@@ -37,6 +38,37 @@ void WebSocketServerApp::close( int clientID )
 
 void WebSocketServerApp::send( std::string msg, int clientID )
 {
+    // build response header
+    size_t headerLength;
+    unsigned char header[10];
+    // text frame for now
+    header[0] = 0x81;
+    size_t dataLength = msg.size( );
+    if ( dataLength < 0x7E )
+    {
+        headerLength = 2;
+        header[1] = dataLength;
+    }
+    else if ( dataLength <= 0xFFFF )
+    {
+        headerLength = 4;
+        header[1] = 0x7E;
+        *((uint16_t*) (header + 2)) = htobe16( dataLength );
+    }
+    else if ( dataLength <= 0x7FFFFFFFFFFFFFFF )
+    {
+        headerLength = 10;
+        header[1] = 0x7F;
+        *((uint64_t*) (header + 2)) = htobe64( dataLength );
+    }
+    else
+    {
+        // too big, not handling
+        LOG_ERROR << "response size if too big: " << dataLength;
+    }
+
+    myClientHandler.streams[clientID].out.add( std::vector<unsigned char>(header, header + headerLength) );
+    myClientHandler.streams[clientID].out.add( std::move( msg ) );
 }
 
 void WebSocketServerApp::send( std::vector<unsigned char> msg, int clientID )

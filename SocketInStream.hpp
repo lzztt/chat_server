@@ -60,10 +60,10 @@ public:
     }
 
     ssize_t recv(const int socket);
-    size_t getData(const char** ppBuffer);
+    size_t getData(const unsigned char** ppBuffer);
     void pop_front(off_t count);
-    bool extract(char* buf, size_t count);
-    bool maskExtract(char* buf, size_t count, const char* mask, size_t maskCount, size_t maskStart);
+    bool extract(unsigned char* buf, size_t count);
+    bool maskExtract(unsigned char* buf, size_t count, const unsigned char* mask, size_t maskCount, size_t maskStart);
 
 private:
 
@@ -82,16 +82,16 @@ private:
         size_t getFreeCapacity() const;
         void pop_front(off_t count);
         void push_back(off_t count);
-        size_t getReadableBuffer(const char** ppBuf) const;
-        size_t getWritableBuffer(char** ppBuf) const;
+        size_t getReadableBuffer(const unsigned char** ppBuf) const;
+        size_t getWritableBuffer(unsigned char** ppBuf) const;
         void clear();
 
     private:
-        static std::deque<std::unique_ptr<char[] >> pool;
+        static std::deque<std::unique_ptr<unsigned char[] >> pool;
 
-        char* pData;
-        char* pBegin;
-        char* pEnd;
+        unsigned char* pData;
+        unsigned char* pBegin;
+        unsigned char* pEnd;
     };
 
     size_t mySize;
