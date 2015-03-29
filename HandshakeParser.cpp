@@ -38,8 +38,7 @@ HandshakeParser::Status HandshakeParser::parse( SocketInStream& in )
     while ( !in.empty( ) && myStatus == Status::PARSING )
     {
         nLeft = count = in.getData( (const unsigned char**) &pData );
-        LOG_INFO << "in.getData = " << count;
-        LOG_DEBUG << std::string( pData, count );
+        LOG_DEBUG << "in.getData = " << std::string( pData, count );
 
         while ( nLeft > 0 && myState < State::END )
         {
@@ -347,14 +346,14 @@ HandshakeParser::Status HandshakeParser::parse( SocketInStream& in )
 
         if ( myState == State::END )
         {
-            LOG_INFO << "in.pop_front = " << count - nLeft;
+            LOG_DEBUG << "in.pop_front = " << count - nLeft;
             in.pop_front( count - nLeft );
             nLeft = 0;
         }
         else
         {
             // continue to load next buffer
-            LOG_INFO << "in.pop_front = " << count;
+            LOG_DEBUG << "in.pop_front = " << count;
             in.pop_front( count );
         }
     }
@@ -372,7 +371,7 @@ HandshakeParser::Status HandshakeParser::myValidateHeaders( )
     // DEBUG
     for ( auto iter = myHeaders.begin( ), iterE = myHeaders.end( ); iter != iterE; ++iter )
     {
-        LOG_INFO << "HDR: " << iter->first << " : " << iter->second;
+        LOG_DEBUG << "HDR: " << iter->first << " : " << iter->second;
     }
 
     // validate |Host| header

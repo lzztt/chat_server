@@ -17,16 +17,14 @@
 void ClientSocketHandler::Stream::init( )
 {
     state = State::CONNECTING;
-    if ( handler ) delete handler;
-    handler = dynamic_cast<MessageHandler*> (new HandshakeHandler( ));
+    handler = std::unique_ptr<MessageHandler>(dynamic_cast<MessageHandler*> (new HandshakeHandler( )));
 }
 
 void ClientSocketHandler::Stream::open( WebSocketServerApp* pServerApp, int socket )
 {
     // OPENING: handshake finished
     state = State::OPEN;
-    delete handler;
-    handler = dynamic_cast<MessageHandler*> (new DataFrameHandler( pServerApp, socket ));
+    handler = std::unique_ptr<MessageHandler>(dynamic_cast<MessageHandler*> (new DataFrameHandler( pServerApp, socket )));
 }
 
 void ClientSocketHandler::Stream::close( )
@@ -34,11 +32,7 @@ void ClientSocketHandler::Stream::close( )
     if ( state != State::CLOSED )
     {
         state = State::CLOSED;
-        if ( !handler )
-        {
-            delete handler;
-            handler = nullptr;
-        }
+        handler = nullptr;
         in.clear( );
         out.clear( );
     }

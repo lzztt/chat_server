@@ -9,6 +9,7 @@
 #define	CLIENTSOCKETHANDLER_HPP
 
 #include <vector>
+#include <memory>
 
 #include "Event.hpp"
 #include "EventLoop.hpp"
@@ -62,14 +63,9 @@ private:
 
         Stream(const Stream& other) = delete;
         Stream& operator=(const Stream& other) = delete;
-
         Stream(Stream&& other) = default;
         Stream& operator=(Stream&& other) = default;
-
-        ~Stream()
-        {
-            if (handler) delete handler;
-        }
+        ~Stream() = default;
 
         void init();
         void open(WebSocketServerApp* pServerApp, int socket);
@@ -78,7 +74,7 @@ private:
         SocketInStream in;
         SocketOutStream out;
         State state;
-        MessageHandler* handler;
+        std::unique_ptr<MessageHandler> handler;
     };
     
     std::vector<Stream> streams;

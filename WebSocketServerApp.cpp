@@ -51,7 +51,7 @@ void WebSocketServerApp::myMessageQueueEventHandler( const Event & ev )
         LOG_ERROR << "message queue size error: expecting " << count << ", actual has " << myMessageQueue.size( ) << " messages";
     }
 
-    LOG_INFO << "flushing message queue";
+    LOG_DEBUG << "flushing message queue";
 
     int i = 0, n = 0;
     size_t headerLength;
@@ -90,16 +90,22 @@ void WebSocketServerApp::myMessageQueueEventHandler( const Event & ev )
         // copy data to send out
         for ( i = 1, n = msg.clients.size( ); i < n; ++i )
         {
-            myClientHandler.streams[msg.clients[i]].out.add( std::vector<unsigned char>(header, header + headerLength) );
-            myClientHandler.streams[msg.clients[i]].out.add( SocketOutStream::Data( msg.data ) );
-            // try send now
-            myClientHandler.onSend( Event( msg.clients[i], 0, Event::dummyEventHandler ) );
+            if ( myClientHandler.streams[msg.clients[i]].state == ClientSocketHandler::Stream::State::OPEN )
+            {
+                myClientHandler.streams[msg.clients[i]].out.add( std::vector<unsigned char>(header, header + headerLength) );
+                myClientHandler.streams[msg.clients[i]].out.add( SocketOutStream::Data( msg.data ) );
+                // try send now
+                myClientHandler.onSend( Event( msg.clients[i], 0, Event::dummyEventHandler ) );
+            }
         }
         // move data to first client
-        myClientHandler.streams[msg.clients[0]].out.add( std::vector<unsigned char>(header, header + headerLength) );
-        myClientHandler.streams[msg.clients[0]].out.add( std::move( msg.data ) );
-        // try send now
-        myClientHandler.onSend( Event( msg.clients[0], 0, Event::dummyEventHandler ) );
+        if ( myClientHandler.streams[msg.clients[0]].state == ClientSocketHandler::Stream::State::OPEN )
+        {
+            myClientHandler.streams[msg.clients[0]].out.add( std::vector<unsigned char>(header, header + headerLength) );
+            myClientHandler.streams[msg.clients[0]].out.add( std::move( msg.data ) );
+            // try send now
+            myClientHandler.onSend( Event( msg.clients[0], 0, Event::dummyEventHandler ) );
+        }
 
         // remove front
         myMessageQueue.pop_front( );
@@ -118,7 +124,7 @@ void WebSocketServerApp::send( std::string msg, int clientID )
 {
     std::lock_guard<std::mutex> lock( myMessageQueueMutex );
 
-    LOG_INFO << "sending-message appended to queue for client " << clientID;
+    LOG_DEBUG << "sending-message appended to queue for client " << clientID;
     myMessageQueue.push_back( Message{SocketOutStream::Data( std::move( msg ) ), std::vector<int>(1, clientID)} );
     uint64_t count = 1;
     ssize_t s = ::write( myMessageQueueEventFd, &count, sizeof (count) );
@@ -130,30 +136,100 @@ void WebSocketServerApp::send( std::string msg, int clientID )
 
 void WebSocketServerApp::send( std::vector<unsigned char> msg, int clientID )
 {
+    std::lock_guard<std::mutex> lock( myMessageQueueMutex );
+
+    LOG_DEBUG << "sending-message appended to queue for client " << clientID;
+    myMessageQueue.push_back( Message{SocketOutStream::Data( std::move( msg ) ), std::vector<int>(1, clientID)} );
+    uint64_t count = 1;
+    ssize_t s = ::write( myMessageQueueEventFd, &count, sizeof (count) );
+    if ( s != sizeof (count) )
+    {
+        LOG_ERROR << "failed to write message queue event: " << std::strerror( errno );
+    }
 }
 
 void WebSocketServerApp::send( std::string msg, std::vector<int> clientIDs )
 {
+    std::lock_guard<std::mutex> lock( myMessageQueueMutex );
+
+    LOG_DEBUG << "sending-message appended to queue for " << clientIDs.size( ) << " clients ";
+    myMessageQueue.push_back( Message{SocketOutStream::Data( std::move( msg ) ), clientIDs} );
+    uint64_t count = 1;
+    ssize_t s = ::write( myMessageQueueEventFd, &count, sizeof (count) );
+    if ( s != sizeof (count) )
+    {
+        LOG_ERROR << "failed to write message queue event: " << std::strerror( errno );
+    }
 }
 
 void WebSocketServerApp::send( std::vector<unsigned char> msg, std::vector<int> clientIDs )
 {
+    std::lock_guard<std::mutex> lock( myMessageQueueMutex );
+
+    LOG_DEBUG << "sending-message appended to queue for " << clientIDs.size( ) << " clients ";
+    myMessageQueue.push_back( Message{SocketOutStream::Data( std::move( msg ) ), clientIDs} );
+    uint64_t count = 1;
+    ssize_t s = ::write( myMessageQueueEventFd, &count, sizeof (count) );
+    if ( s != sizeof (count) )
+    {
+        LOG_ERROR << "failed to write message queue event: " << std::strerror( errno );
+    }
 }
 
 // move message
 
 void WebSocketServerApp::send( std::string&& msg, int clientID )
 {
+    std::lock_guard<std::mutex> lock( myMessageQueueMutex );
+
+    LOG_DEBUG << "sending-message appended to queue for client " << clientID;
+    myMessageQueue.push_back( Message{SocketOutStream::Data( std::move( msg ) ), std::vector<int>(1, clientID)} );
+    uint64_t count = 1;
+    ssize_t s = ::write( myMessageQueueEventFd, &count, sizeof (count) );
+    if ( s != sizeof (count) )
+    {
+        LOG_ERROR << "failed to write message queue event: " << std::strerror( errno );
+    }
 }
 
 void WebSocketServerApp::send( std::vector<unsigned char>&& msg, int clientID )
 {
+    std::lock_guard<std::mutex> lock( myMessageQueueMutex );
+
+    LOG_DEBUG << "sending-message appended to queue for client " << clientID;
+    myMessageQueue.push_back( Message{SocketOutStream::Data( std::move( msg ) ), std::vector<int>(1, clientID)} );
+    uint64_t count = 1;
+    ssize_t s = ::write( myMessageQueueEventFd, &count, sizeof (count) );
+    if ( s != sizeof (count) )
+    {
+        LOG_ERROR << "failed to write message queue event: " << std::strerror( errno );
+    }
 }
 
 void WebSocketServerApp::send( std::string&& msg, std::vector<int> clientIDs )
 {
+    std::lock_guard<std::mutex> lock( myMessageQueueMutex );
+
+    LOG_DEBUG << "sending-message appended to queue for " << clientIDs.size( ) << " clients ";
+    myMessageQueue.push_back( Message{SocketOutStream::Data( std::move( msg ) ), clientIDs} );
+    uint64_t count = 1;
+    ssize_t s = ::write( myMessageQueueEventFd, &count, sizeof (count) );
+    if ( s != sizeof (count) )
+    {
+        LOG_ERROR << "failed to write message queue event: " << std::strerror( errno );
+    }
 }
 
 void WebSocketServerApp::send( std::vector<unsigned char>&& msg, std::vector<int> clientIDs )
 {
+    std::lock_guard<std::mutex> lock( myMessageQueueMutex );
+
+    LOG_DEBUG << "sending-message appended to queue for " << clientIDs.size( ) << " clients ";
+    myMessageQueue.push_back( Message{SocketOutStream::Data( std::move( msg ) ), clientIDs} );
+    uint64_t count = 1;
+    ssize_t s = ::write( myMessageQueueEventFd, &count, sizeof (count) );
+    if ( s != sizeof (count) )
+    {
+        LOG_ERROR << "failed to write message queue event: " << std::strerror( errno );
+    }
 }
