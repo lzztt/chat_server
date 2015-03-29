@@ -27,6 +27,7 @@ class EchoServerApp : public WebSocketServerApp
 
     virtual void onMessage( std::string msg, int clientID ) override
     {
+        msg.append("-_-!!");
         send( msg, clientID );
     }
 

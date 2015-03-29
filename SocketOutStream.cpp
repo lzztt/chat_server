@@ -14,13 +14,6 @@
 #include "SocketOutStream.hpp"
 #include "Log.hpp"
 
-SocketOutStream::Buffer::Buffer( int fd ) :
-data( Data( Data::File({fd, (size_t) ::lseek( fd, 0, SEEK_END )} ) ) ),
-offset( 0 )
-{
-    LOG_DEBUG << "buffer created with fd";
-}
-
 SocketOutStream::Buffer::Buffer( std::string&& str ) :
 data( Data( std::move( str ) ) ),
 offset( 0 )
@@ -35,13 +28,6 @@ offset( 0 )
     LOG_DEBUG << "buffer created with binary";
 }
 
-SocketOutStream::Buffer::Buffer( Data data ) :
-data( std::move( data ) ),
-offset( 0 )
-{
-    LOG_DEBUG << "buffer created with data";
-}
-
 SocketOutStream::Buffer::Buffer( Data&& data ) :
 data( std::move( data ) ),
 offset( 0 )
@@ -54,8 +40,9 @@ data( std::move( other.data ) ),
 offset( other.offset )
 {
     LOG_DEBUG << "moved from " << &other;
-    other.data.clear();
     other.offset = 0;
+    if ( other.data.type == Data::Type::FILE ) other.data.file = {0};
+    
 }
 
 SocketOutStream::Buffer& SocketOutStream::Buffer::operator=(SocketOutStream::Buffer&& other)
@@ -66,8 +53,8 @@ SocketOutStream::Buffer& SocketOutStream::Buffer::operator=(SocketOutStream::Buf
         data = std::move( other.data );
         offset = other.offset;
 
-        other.data.clear();
         other.offset = 0;
+        if ( other.data.type == Data::Type::FILE ) other.data.file = {0};
     }
 
     return *this;

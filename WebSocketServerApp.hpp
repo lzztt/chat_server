@@ -8,9 +8,10 @@
 #ifndef WEBSOCKETSERVERAPP_HPP
 #define	WEBSOCKETSERVERAPP_HPP
 
-#include <sys/eventfd.h>
 #include <vector>
+#include <deque>
 #include <string>
+#include <mutex>
 
 #include "ClientSocketHandler.hpp"
 
@@ -54,12 +55,21 @@ public:
     virtual void run() final;
 
 private:
+   
+    void myMessageQueueEventHandler(const Event & ev);
+    
     EventLoop myEventLoop;
     ClientSocketHandler myClientHandler;
-    int mySendEventFd;
-    std::vector<int> clientIDs;
-    std::vector<int> messageIDs;
-    std::deque<SocketOutStream::Data> messages;    
+    int myMessageQueueEventFd;
+
+    struct Message
+    {
+        SocketOutStream::Data data;
+        std::vector<int> clients;
+    };
+    std::deque<Message> myMessageQueue;
+
+    std::mutex myMessageQueueMutex;
 };
 
 #endif	/* WEBSOCKETSERVERAPP_HPP */

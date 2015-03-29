@@ -30,6 +30,8 @@ public:
     bool isIn() const;
     bool isOut() const;
     bool isError() const;
+    
+    static handler_t dummyEventHandler;
 
 private:
     int fd;

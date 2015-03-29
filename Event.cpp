@@ -11,6 +11,8 @@
 #include "Event.hpp"
 #include "Log.hpp"
 
+Event::handler_t Event::dummyEventHandler = Event::handler_t();
+
 Event::Event( const int fd, const uint32_t events, handler_t handler ) :
 fd( fd ),
 events( events | EPOLLRDHUP | EPOLLET ),

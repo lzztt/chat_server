@@ -108,9 +108,7 @@ bool ClientSocketHandler::add( int socket )
 
 bool ClientSocketHandler::close( int socket )
 {
-    pServerApp->myEventLoop.unregisterEvent( Event( socket, 0, [](const Event & ev)
-    {
-    } ) );
+    pServerApp->myEventLoop.unregisterEvent( Event( socket, 0, Event::dummyEventHandler ) );
     streams[socket].close( );
 }
 
