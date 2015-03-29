@@ -37,7 +37,7 @@ void WebSocketServerApp::run( )
 void WebSocketServerApp::myMessageQueueEventHandler( const Event & ev )
 {
     // lock for out
-    myMessageQueueMutex.lock( );
+    std::lock_guard<std::mutex> lock( myMessageQueueMutex );
 
     uint64_t count = 0;
     ssize_t s = ::read( ev.getFd( ), &count, sizeof (count) );
@@ -100,12 +100,11 @@ void WebSocketServerApp::myMessageQueueEventHandler( const Event & ev )
         myClientHandler.streams[msg.clients[0]].out.add( std::move( msg.data ) );
         // try send now
         myClientHandler.onSend( Event( msg.clients[0], 0, Event::dummyEventHandler ) );
-        
+
         // remove front
         myMessageQueue.pop_front( );
     }
 
-    myMessageQueueMutex.unlock( );
 }
 
 void WebSocketServerApp::close( int clientID )
@@ -117,7 +116,8 @@ void WebSocketServerApp::close( int clientID )
 
 void WebSocketServerApp::send( std::string msg, int clientID )
 {
-    myMessageQueueMutex.lock( );
+    std::lock_guard<std::mutex> lock( myMessageQueueMutex );
+
     LOG_INFO << "sending-message appended to queue for client " << clientID;
     myMessageQueue.push_back( Message{SocketOutStream::Data( std::move( msg ) ), std::vector<int>(1, clientID)} );
     uint64_t count = 1;
@@ -126,7 +126,6 @@ void WebSocketServerApp::send( std::string msg, int clientID )
     {
         LOG_ERROR << "failed to write message queue event: " << std::strerror( errno );
     }
-    myMessageQueueMutex.unlock( );
 }
 
 void WebSocketServerApp::send( std::vector<unsigned char> msg, int clientID )

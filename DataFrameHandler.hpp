@@ -8,6 +8,8 @@
 #ifndef DATAFRAMEHANDLER_HPP
 #define	DATAFRAMEHANDLER_HPP
 
+#include <vector>
+
 #include "MessageHandler.hpp"
 #include "DataFrameParser.hpp"
 #include "WebSocketServerApp.hpp"
@@ -18,7 +20,8 @@ public:
 
     explicit DataFrameHandler(WebSocketServerApp* pServerApp, int clientID) :
     pServerApp(pServerApp),
-    myClientID(clientID)
+    myClientID(clientID),
+    myMessageType(Type::NONE)
     {
     }
 
@@ -33,20 +36,30 @@ public:
     virtual Status process(SocketInStream& in, SocketOutStream& out) override;
 
 private:
-    bool myHandleMessage(SocketOutStream& out);
+    bool myHandleMessage(unsigned int type);
     bool myHandleFragmentFrame(SocketOutStream& out);
-    void myHandleUnrealsedData(SocketOutStream& out);
     void myHandleBadMaskBit(SocketOutStream& out);
     void myHandleBadPayloadLength(SocketOutStream& out);
 
     void mySendCloseFrame(SocketOutStream& out);
     void mySendPongFrame(SocketOutStream& out);
 
-    DataFrameParser myParser;
+    enum class Type : int
+    {
+        NONE,
+        TEXT,
+        BINARY
+    };
 
-    std::string myMessage;
     WebSocketServerApp* pServerApp;
     int myClientID;
+
+    DataFrameParser myParser;
+    Type myMessageType;
+    std::string myMessageText;
+    std::vector<unsigned char> myMessageBinary;
+
+
 };
 
 #endif	/* DATAFRAMEHANDLER_HPP */

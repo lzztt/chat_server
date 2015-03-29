@@ -6,28 +6,29 @@
  */
 
 #include "WebSocketServerApp.hpp"
+#include "Log.hpp"
 
 class EchoServerApp : public WebSocketServerApp
 {
 
     virtual void onOpen( int clientID ) override
     {
-
+        LOG_INFO << "client connected " << clientID;
     }
 
     virtual void onClose( int clientID ) override
     {
-
+        LOG_INFO << "client disconnected " << clientID;
     }
 
     virtual void onMessage( std::vector<unsigned char> msg, int clientID ) override
     {
-        send( msg, clientID );
+        LOG_ERROR << "not implemented";
     }
 
     virtual void onMessage( std::string msg, int clientID ) override
     {
-        msg.append("-_-!!");
+        msg.append(" -_-!!");
         send( msg, clientID );
     }
 

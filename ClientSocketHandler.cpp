@@ -124,6 +124,7 @@ void ClientSocketHandler::onError( const Event& ev )
     }
 
     streams[socket].close( );
+    pServerApp->onClose( socket );
 }
 
 void ClientSocketHandler::onRecv( const Event& ev )
@@ -159,6 +160,7 @@ void ClientSocketHandler::onRecv( const Event& ev )
             if ( stream.state == Stream::State::CONNECTING )
             {
                 stream.open( pServerApp, socket );
+                pServerApp->onOpen( socket );
                 // just finished handshake, connection is OPEN
                 // there should be no data received further before OPEN, otherwise clear
                 if ( !stream.in.empty( ) ) stream.in.clear( );
