@@ -57,13 +57,16 @@ public:
 private:
    
     void myMessageQueueEventHandler(const Event & ev);
+    void mySend(std::string&& msg, std::vector<int>&& clientIDs);
+    void mySend(std::vector<unsigned char>&& msg, std::vector<int>&& clientIDs);
     
     EventLoop myEventLoop;
     ClientSocketHandler myClientHandler;
     int myMessageQueueEventFd;
 
-    struct Message
+    class Message
     {
+    public:
         SocketOutStream::Data data;
         std::vector<int> clients;
     };

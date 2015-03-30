@@ -26,7 +26,9 @@ currentEventFd( 0 )
 
 EventLoop::~EventLoop( )
 {
+#ifdef DEBUG
     LOG_DEBUG << "destroyed";
+#endif
 }
 
 bool EventLoop::registerEvent( const Event& ev ) noexcept
@@ -69,7 +71,9 @@ bool EventLoop::registerEvent( const Event& ev ) noexcept
 
 bool EventLoop::unregisterEvent( const Event& ev ) noexcept
 {
+#ifdef DEBUG
     LOG_DEBUG << "unregister event " << ev.fd;
+#endif
     epoll_event epev = {0};
     ::epoll_ctl( fd, EPOLL_CTL_DEL, ev.fd, &epev );
 
@@ -115,7 +119,9 @@ void EventLoop::run( ) noexcept
                 // interrupted by a signal handler
                 // log here
                 // signal handler?
+#ifdef DEBUG
                 LOG_DEBUG << "signal interrupted";
+#endif
             }
             else
             {
@@ -132,7 +138,9 @@ void EventLoop::run( ) noexcept
             Event& evo = *(static_cast<Event*> (epev.data.ptr));
             evo.events = epev.events;
             // DEBUG
+#ifdef DEBUG
             LOG_DEBUG << "get event: " << evo.fd << " [" << evo.events << "]";
+#endif
 
             // unregister error event
             if ( !evo.isError( ) )

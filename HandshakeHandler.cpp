@@ -12,7 +12,9 @@
 
 MessageHandler::Status HandshakeHandler::process( SocketInStream& in, SocketOutStream& out )
 {
+#ifdef DEBUG
     LOG_DEBUG << "processing";
+#endif
     HandshakeParser::Status status = myParser.parse( in );
     switch ( status )
     {

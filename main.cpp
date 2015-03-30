@@ -68,7 +68,7 @@ public:
             toClients.insert( toClients.begin( ), clients.begin( ), i );
             toClients.insert( toClients.begin( ) + index, ++i, clients.end( ) );
 
-            send( outMsg, toClients );
+            if ( !toClients.empty( ) ) send( outMsg, toClients );
         }
     }
 

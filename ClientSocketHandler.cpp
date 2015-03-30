@@ -41,18 +41,24 @@ void ClientSocketHandler::Stream::close( )
 ClientSocketHandler::ClientSocketHandler( WebSocketServerApp* pServerApp ) :
 pServerApp( pServerApp )
 {
+#ifdef DEBUG
     LOG_DEBUG << "created";
+#endif
 }
 
 ClientSocketHandler::ClientSocketHandler( ClientSocketHandler&& other ) :
 streams( std::move( other.streams ) )
 {
+#ifdef DEBUG 
     LOG_DEBUG << "moved from " << &other;
+#endif
 }
 
 ClientSocketHandler& ClientSocketHandler::operator=(ClientSocketHandler&& other)
 {
+#ifdef DEBUG 
     LOG_DEBUG << "moved from " << &other;
+#endif
     if ( this != &other )
     {
         streams = std::move( other.streams );
@@ -62,7 +68,9 @@ ClientSocketHandler& ClientSocketHandler::operator=(ClientSocketHandler&& other)
 
 ClientSocketHandler::~ClientSocketHandler( )
 {
+#ifdef DEBUG 
     LOG_DEBUG << "destroyed";
+#endif
 }
 
 bool ClientSocketHandler::add( int socket )
@@ -109,7 +117,9 @@ bool ClientSocketHandler::close( int socket )
 void ClientSocketHandler::onError( const Event& ev )
 {
     int socket = ev.getFd( );
+#ifdef DEBUG 
     LOG_DEBUG << "socket=" << socket;
+#endif
 
     // explicitly unregister for non error event
     if ( !ev.isError( ) )
@@ -124,7 +134,9 @@ void ClientSocketHandler::onError( const Event& ev )
 void ClientSocketHandler::onRecv( const Event& ev )
 {
     int socket = ev.getFd( );
+#ifdef DEBUG 
     LOG_DEBUG << "socket=" << socket;
+#endif
 
     auto& stream = streams[socket];
 
@@ -214,7 +226,9 @@ void ClientSocketHandler::onRecv( const Event& ev )
 void ClientSocketHandler::onSend( const Event& ev )
 {
     int socket = ev.getFd( );
+#ifdef DEBUG 
     LOG_DEBUG << "socket=" << socket;
+#endif
 
     auto& stream = streams[socket];
     if ( !stream.out.empty( ) )

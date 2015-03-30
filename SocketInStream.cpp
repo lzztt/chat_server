@@ -19,7 +19,9 @@ std::deque<std::unique_ptr<unsigned char[] >> SocketInStream::Buffer::pool = std
 
 SocketInStream::Buffer::Buffer( )
 {
+#ifdef DEBUG
     LOG_DEBUG << "buffer created";
+#endif
     if ( !pool.empty( ) )
     {
         pBegin = pEnd = pData = pool.front( ).release( );
@@ -37,13 +39,17 @@ pData( other.pData ),
 pBegin( other.pBegin ),
 pEnd( other.pEnd )
 {
+#ifdef DEBUG
     LOG_DEBUG << "moved from " << &other;
+#endif
     other.pBegin = other.pEnd = other.pData = nullptr;
 }
 
 SocketInStream::Buffer& SocketInStream::Buffer::operator=(SocketInStream::Buffer&& other)
 {
+#ifdef DEBUG
     LOG_DEBUG << "moved from " << &other;
+#endif
     if ( this != &other )
     {
         pData = other.pData;
@@ -162,7 +168,9 @@ ssize_t SocketInStream::recv( const int socket )
         if ( nLeft < bufSize )
         {
             nWriten = bufSize - nLeft;
+#ifdef DEBUG
             LOG_DEBUG << "recv " << nWriten << " bytes";
+#endif
             nRecv += nWriten;
             buf.push_back( nWriten );
             buffers.push_back( std::move( buf ) );

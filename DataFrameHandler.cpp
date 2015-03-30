@@ -97,8 +97,9 @@ bool DataFrameHandler::myHandleMessage( unsigned int type )
 {
     std::unique_ptr<unsigned char[] > buf;
     size_t count = myParser.getData( buf );
+#ifdef DEBUG
     LOG_DEBUG << "get message (" << count << " bytes) : " << std::string( (char*) buf.get( ), count );
-
+#endif
     // pass to the onMessage event handler
     switch ( type )
     {
@@ -193,14 +194,18 @@ void DataFrameHandler::myHandleBadPayloadLength( SocketOutStream& out )
 
 void DataFrameHandler::mySendCloseFrame( SocketOutStream& out )
 {
+#ifdef DEBUG
     LOG_DEBUG << "sending CLOSE frame";
+#endif
     unsigned char close[2] = {(unsigned char) 0x88, (unsigned char) 0x00};
     out.add( std::vector<unsigned char>(close, close + 2) );
 }
 
 void DataFrameHandler::mySendPongFrame( SocketOutStream& out )
 {
+#ifdef DEBUG
     LOG_DEBUG << "sending PONG frame";
+#endif
     std::unique_ptr<unsigned char[] > pData;
     size_t count = myParser.getData( pData );
     if ( count == 0 )

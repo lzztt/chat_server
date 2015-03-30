@@ -110,16 +110,28 @@ myDataLength( 0 )
 {
 }
 
-DataFrameParser::DataFrameParser( DataFrameParser&& other )
+DataFrameParser::DataFrameParser( DataFrameParser&& other ) :
+myState( other.myState ),
+myHeader( other.myHeader ),
+myPayloadLength( other.myPayloadLength ),
+myData( std::move( other.myData ) ),
+myDataLength( other.myDataLength )
 {
+    std::memcpy( myMask, other.myMask, sizeof (unsigned char)*4 );
 }
 
 DataFrameParser& DataFrameParser::operator=(DataFrameParser&& other)
 {
-}
-
-DataFrameParser::~DataFrameParser( )
-{
+    if ( this != &other )
+    {
+        myState = other.myState;
+        myHeader = other.myHeader;
+        myPayloadLength = other.myPayloadLength;
+        std::memcpy( myMask, other.myMask, sizeof (unsigned char)*4 );
+        myData = std::move( other.myData );
+        myDataLength = other.myDataLength;
+    }
+    return *this;
 }
 
 DataFrameParser::Status DataFrameParser::parse( SocketInStream& in )

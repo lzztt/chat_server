@@ -35,10 +35,10 @@ public:
     HandshakeParser(const HandshakeParser& other) = delete;
     HandshakeParser& operator=(const HandshakeParser& other) = delete;
 
-    HandshakeParser(HandshakeParser&& other);
-    HandshakeParser& operator=(HandshakeParser&& other);
+    HandshakeParser(HandshakeParser&& other) = default;
+    HandshakeParser& operator=(HandshakeParser&& other) = default;
 
-    ~HandshakeParser();
+    ~HandshakeParser() = default;
 
     HandshakeParser::Status parse(SocketInStream& in);
     

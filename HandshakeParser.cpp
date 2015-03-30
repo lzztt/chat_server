@@ -17,18 +17,6 @@ myMethod( Method::UNKNOWN )
 {
 }
 
-HandshakeParser::HandshakeParser( HandshakeParser&& other )
-{
-}
-
-HandshakeParser& HandshakeParser::operator=(HandshakeParser&& other)
-{
-}
-
-HandshakeParser::~HandshakeParser( )
-{
-}
-
 HandshakeParser::Status HandshakeParser::parse( SocketInStream& in )
 {
     size_t nLeft = 0, count = 0;
@@ -38,7 +26,9 @@ HandshakeParser::Status HandshakeParser::parse( SocketInStream& in )
     while ( !in.empty( ) && myStatus == Status::PARSING )
     {
         nLeft = count = in.getData( (const unsigned char**) &pData );
+#ifdef DEBUG
         LOG_DEBUG << "in.getData = " << std::string( pData, count );
+#endif
 
         while ( nLeft > 0 && myState < State::END )
         {
@@ -346,14 +336,18 @@ HandshakeParser::Status HandshakeParser::parse( SocketInStream& in )
 
         if ( myState == State::END )
         {
+#ifdef DEBUG
             LOG_DEBUG << "in.pop_front = " << count - nLeft;
+#endif
             in.pop_front( count - nLeft );
             nLeft = 0;
         }
         else
         {
             // continue to load next buffer
+#ifdef DEBUG
             LOG_DEBUG << "in.pop_front = " << count;
+#endif
             in.pop_front( count );
         }
     }
@@ -369,10 +363,12 @@ HandshakeParser::Status HandshakeParser::parse( SocketInStream& in )
 HandshakeParser::Status HandshakeParser::myValidateHeaders( )
 {
     // DEBUG
+#ifdef DEBUG
     for ( auto iter = myHeaders.begin( ), iterE = myHeaders.end( ); iter != iterE; ++iter )
     {
         LOG_DEBUG << "HDR: " << iter->first << " : " << iter->second;
     }
+#endif
 
     // validate |Host| header
     auto iter = myHeaders.find( "HOST" );

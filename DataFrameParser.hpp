@@ -50,7 +50,7 @@ public:
     DataFrameParser(DataFrameParser&& other);
     DataFrameParser& operator=(DataFrameParser&& other);
 
-    ~DataFrameParser();
+    ~DataFrameParser() = default;
 
     Status parse(SocketInStream& in);
     

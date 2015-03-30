@@ -190,7 +190,9 @@ pEventLoop( pEventLoop ),
 pClientHandler( pClientHander )
 {
     socket = myCreate( port );
+#ifdef DEBUG
     LOG_DEBUG << "socket " << socket << " [port=" << port << "]";
+#endif
 
     if ( socket == -1 )
     {
@@ -213,7 +215,9 @@ pEventLoop( pEventLoop ),
 pClientHandler( pClientHander )
 {
     socket = myCreate( unixSocketFile );
+#ifdef DEBUG
     LOG_DEBUG << "socket " << socket << " [file=" << unixSocketFile << "]";
+#endif
 
     if ( socket == -1 )
     {
@@ -233,7 +237,9 @@ pClientHandler( pClientHander )
 
 ServerSocket::~ServerSocket( )
 {
+#ifdef DEBUG
     LOG_DEBUG << "destroyed, " << "close socket " << socket;
+#endif
     myClose( socket );
     delete pClientHandler;
 }
@@ -274,7 +280,9 @@ void ServerSocket::onConnect( const Event& ev )
         }
 
         // DEBUG
+#ifdef DEBUG
         LOG_DEBUG << "CONNECT: client @ " << client;
+#endif
 
         if ( addrClient.sa_family == AF_INET || addrClient.sa_family == AF_INET6 )
         {
@@ -295,7 +303,9 @@ void ServerSocket::onConnect( const Event& ev )
                                     NI_NUMERICHOST | NI_NUMERICSERV );
             if ( status == 0 )
             {
+#ifdef DEBUG
                 LOG_DEBUG << "client from " << host << ":" << service;
+#endif
             }
             else
             {
@@ -306,7 +316,9 @@ void ServerSocket::onConnect( const Event& ev )
         if ( !pClientHandler->add( client ) )
         {
             // DEBUG
+#ifdef DEBUG
             LOG_DEBUG << "DISCONNECT: client @ " << socket;
+#endif
 
             // log error here
             ::close( client );

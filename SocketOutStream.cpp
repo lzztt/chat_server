@@ -18,36 +18,46 @@ SocketOutStream::Buffer::Buffer( std::string&& str ) :
 data( Data( std::move( str ) ) ),
 offset( 0 )
 {
+#ifdef DEBUG
     LOG_DEBUG << "buffer created with string";
+#endif
 }
 
 SocketOutStream::Buffer::Buffer( std::vector<unsigned char>&& binary ) :
 data( Data( std::move( binary ) ) ),
 offset( 0 )
 {
+#ifdef DEBUG
     LOG_DEBUG << "buffer created with binary";
+#endif
 }
 
 SocketOutStream::Buffer::Buffer( Data&& data ) :
 data( std::move( data ) ),
 offset( 0 )
 {
+#ifdef DEBUG
     LOG_DEBUG << "buffer created with data";
+#endif
 }
 
 SocketOutStream::Buffer::Buffer( SocketOutStream::Buffer&& other ) :
 data( std::move( other.data ) ),
 offset( other.offset )
 {
+#ifdef DEBUG
     LOG_DEBUG << "moved from " << &other;
+#endif
     other.offset = 0;
     if ( other.data.type == Data::Type::FILE ) other.data.file = {0};
-    
+
 }
 
 SocketOutStream::Buffer& SocketOutStream::Buffer::operator=(SocketOutStream::Buffer&& other)
 {
+#ifdef DEBUG
     LOG_DEBUG << "moved from " << &other;
+#endif
     if ( this != &other )
     {
         data = std::move( other.data );
@@ -177,6 +187,8 @@ ssize_t SocketOutStream::send( const int socket )
         }
     }
 
+#ifdef DEBUG
     LOG_DEBUG << "send " << nSend << " bytes";
+#endif
     return nSend;
 }
