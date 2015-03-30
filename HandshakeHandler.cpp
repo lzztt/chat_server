@@ -40,7 +40,7 @@ MessageHandler::Status HandshakeHandler::process( SocketInStream& in, SocketOutS
         break;
 
     case HandshakeParser::Status::PARSING:
-        Status::PARSING;
+        return Status::PARSING;
         break;
 
     default:

@@ -41,7 +41,7 @@ HandshakeParser::Status HandshakeParser::parse( SocketInStream& in )
                     // GET, case-sensitive
                     if ( *pData++ == 'G' )
                     {
-                        myMethod == Method::GET;
+                        myMethod = Method::GET;
                     }
                     else
                     {

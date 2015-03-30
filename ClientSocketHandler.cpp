@@ -108,10 +108,10 @@ bool ClientSocketHandler::add( int socket )
     return pServerApp->myEventLoop.registerEvent( dataEvent );
 }
 
-bool ClientSocketHandler::close( int socket )
+void ClientSocketHandler::close( int socket )
 {
     pServerApp->myEventLoop.unregisterEvent( Event( socket, 0, Event::dummyEventHandler ) );
-    streams[socket].close( );
+    if( socket < streams.size() ) streams[socket].close( );
 }
 
 void ClientSocketHandler::onError( const Event& ev )

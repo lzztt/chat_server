@@ -280,7 +280,7 @@ DataFrameParser::Status DataFrameParser::parse( SocketInStream& in )
         // no application in data frame
         if ( myPayloadLength == 0 )
         {
-            myState == State::END;
+            myState = State::END;
             return Status::SUCCESS;
         }
 
@@ -305,6 +305,8 @@ DataFrameParser::Status DataFrameParser::parse( SocketInStream& in )
             return Status::PARSING;
         }
     }
+    
+    return Status::PARSING;
 }
 
 size_t DataFrameParser::getData( std::unique_ptr<unsigned char[]>& pData )

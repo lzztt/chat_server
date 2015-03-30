@@ -71,7 +71,7 @@ MessageHandler::Status DataFrameHandler::process( SocketInStream& in, SocketOutS
             break;
 
         case DataFrameParser::Status::PARSING:
-            Status::PARSING;
+            return Status::PARSING;
             break;
 
         case DataFrameParser::Status::BAD_MASK_BIT:

@@ -55,7 +55,7 @@ void WebSocketServerApp::myMessageQueueEventHandler( const Event & ev )
 #endif
     int i = 0, n = 0;
     int clientIDMax = myClientHandler.streams.size( );
-    size_t headerLength;
+    size_t headerLength = 0;
     unsigned char header[10];
 
     while ( !myMessageQueue.empty( ) )

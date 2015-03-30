@@ -190,7 +190,7 @@ size_t SocketInStream::getData( const unsigned char** ppBuffer )
     }
     else
     {
-        *ppBuffer == nullptr;
+        *ppBuffer = nullptr;
         return 0;
     }
 }

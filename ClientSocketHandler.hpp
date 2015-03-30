@@ -34,7 +34,7 @@ public:
     ~ClientSocketHandler();
 
     bool add(int socket);
-    bool close(int socket);
+    void close(int socket);
 
 protected:
     void onError(const Event& ev);
