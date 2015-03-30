@@ -54,10 +54,10 @@ void WebSocketServerApp::myMessageQueueEventHandler( const Event & ev )
     LOG_DEBUG << "flushing message queue";
 #endif
     int i = 0, n = 0;
-    int clientIDMax = myClientHandler.streams.size();
+    int clientIDMax = myClientHandler.streams.size( );
     size_t headerLength;
     unsigned char header[10];
-    
+
     while ( !myMessageQueue.empty( ) )
     {
         Message& msg = myMessageQueue.front( );
@@ -137,12 +137,12 @@ void WebSocketServerApp::send( std::vector<unsigned char> msg, int clientID )
 
 void WebSocketServerApp::send( std::string msg, std::vector<int> clientIDs )
 {
-    mySend( std::move( msg ), std::move( clientIDs ) );
+    if ( !clientIDs.empty( ) ) mySend( std::move( msg ), std::move( clientIDs ) );
 }
 
 void WebSocketServerApp::send( std::vector<unsigned char> msg, std::vector<int> clientIDs )
 {
-    mySend( std::move( msg ), std::move( clientIDs ) );
+    if ( !clientIDs.empty( ) ) mySend( std::move( msg ), std::move( clientIDs ) );
 }
 
 // move message
@@ -159,12 +159,12 @@ void WebSocketServerApp::send( std::vector<unsigned char>&& msg, int clientID )
 
 void WebSocketServerApp::send( std::string&& msg, std::vector<int> clientIDs )
 {
-    mySend( std::move( msg ), std::move( clientIDs ) );
+    if ( !clientIDs.empty( ) ) mySend( std::move( msg ), std::move( clientIDs ) );
 }
 
 void WebSocketServerApp::send( std::vector<unsigned char>&& msg, std::vector<int> clientIDs )
 {
-    mySend( std::move( msg ), std::move( clientIDs ) );
+    if ( !clientIDs.empty( ) ) mySend( std::move( msg ), std::move( clientIDs ) );
 }
 
 void WebSocketServerApp::mySend( std::string&& msg, std::vector<int>&& clientIDs )
