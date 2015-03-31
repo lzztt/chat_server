@@ -10,6 +10,8 @@
 #include "sha1/sha1.hpp"
 #include "base64/base64.hpp"
 
+namespace websocket {
+
 MessageHandler::Status HandshakeHandler::process( SocketInStream& in, SocketOutStream& out )
 {
 #ifdef DEBUG
@@ -95,4 +97,4 @@ void HandshakeHandler::myHandleHttpVersionNotSupported( SocketOutStream& out )
     out.add( "HTTP/1.1 505 HTTP Version Not Supported\r\n\r\n" );
 }
 
-
+} // namespace websocket

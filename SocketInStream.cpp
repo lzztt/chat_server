@@ -14,6 +14,8 @@
 #define BUFSIZE 4096
 #define POOLSIZE 1000
 
+namespace websocket {
+
 // initialize static pool
 std::deque<std::unique_ptr<unsigned char[] >> SocketInStream::Buffer::pool = std::deque<std::unique_ptr<unsigned char[] >>();
 
@@ -299,3 +301,5 @@ bool SocketInStream::maskExtract( unsigned char* buf, size_t count, const unsign
 
     return true;
 }
+
+} // namespace websocket

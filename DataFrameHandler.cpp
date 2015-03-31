@@ -11,6 +11,8 @@
 #include "DataFrameHandler.hpp"
 #include "Log.hpp"
 
+namespace websocket {
+
 MessageHandler::Status DataFrameHandler::process( SocketInStream& in, SocketOutStream& out )
 {
     while ( !in.empty( ) )
@@ -221,3 +223,4 @@ void DataFrameHandler::mySendPongFrame( SocketOutStream& out )
     }
 }
 
+} // namespace websocket

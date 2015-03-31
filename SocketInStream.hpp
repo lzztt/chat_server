@@ -11,6 +11,8 @@
 #include <deque>
 #include <memory>
 
+namespace websocket {
+
 class SocketInStream
 {
 public:
@@ -97,6 +99,8 @@ private:
     size_t mySize;
     std::deque<Buffer> buffers;
 };
+
+} // namespace websocket
 
 #endif	/* SOCKETINSTREAM_HPP */
 

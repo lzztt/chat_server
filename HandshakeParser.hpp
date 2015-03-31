@@ -14,6 +14,8 @@
 
 #include "SocketInStream.hpp"
 
+namespace websocket {
+
 class HandshakeParser
 {
     using Headers = std::unordered_map<std::string, std::string>;
@@ -84,6 +86,8 @@ private:
     std::string myCurrentHeaderValue;
     Headers myHeaders;
 };
+
+} // namespace websocket
 
 #endif	/* HANDSHAKEPARSER_HPP */
 

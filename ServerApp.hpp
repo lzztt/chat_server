@@ -1,34 +1,38 @@
 /* 
- * File:   WebSocketServerApp.hpp
+ * File:   ServerApp.hpp
  * Author: ikki
  *
  * Created on February 20, 2015, 8:50 PM
  */
 
-#ifndef WEBSOCKETSERVERAPP_HPP
-#define	WEBSOCKETSERVERAPP_HPP
+#ifndef SERVERAPP_HPP
+#define	SERVERAPP_HPP
 
 #include <vector>
 #include <deque>
 #include <string>
 #include <mutex>
 
+#include "Event.hpp"
+#include "EventLoop.hpp"
 #include "ClientSocketHandler.hpp"
 
-class WebSocketServerApp
+namespace websocket {
+
+class ServerApp
 {
     friend class ClientSocketHandler;
 public:
 
-    WebSocketServerApp();
+    ServerApp();
 
-    WebSocketServerApp(const WebSocketServerApp& other) = delete;
-    WebSocketServerApp& operator=(const WebSocketServerApp& other) = delete;
+    ServerApp(const ServerApp& other) = delete;
+    ServerApp& operator=(const ServerApp& other) = delete;
 
-    WebSocketServerApp(WebSocketServerApp&& other) = delete;
-    WebSocketServerApp& operator=(WebSocketServerApp&& other) = delete;
+    ServerApp(ServerApp&& other) = delete;
+    ServerApp& operator=(ServerApp&& other) = delete;
 
-    ~WebSocketServerApp() = default;
+    ~ServerApp() = default;
 
     // event handler
     virtual void onOpen(int clientID) = 0;
@@ -55,11 +59,11 @@ public:
     virtual void run() final;
 
 private:
-   
+
     void myMessageQueueEventHandler(const Event & ev);
     void mySend(std::string&& msg, std::vector<int>&& clientIDs);
     void mySend(std::vector<unsigned char>&& msg, std::vector<int>&& clientIDs);
-    
+
     EventLoop myEventLoop;
     ClientSocketHandler myClientHandler;
     int myMessageQueueEventFd;
@@ -74,6 +78,8 @@ private:
 
     std::mutex myMessageQueueMutex;
 };
+
+} // namespace websocket
 
 #endif	/* WEBSOCKETSERVERAPP_HPP */
 

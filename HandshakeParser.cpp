@@ -10,6 +10,8 @@
 #include "HandshakeParser.hpp"
 #include "Log.hpp"
 
+namespace websocket {
+
 HandshakeParser::HandshakeParser( ) :
 myState( State::METHOD ),
 myStatus( Status::PARSING ),
@@ -455,3 +457,5 @@ HandshakeParser::Status HandshakeParser::myValidateHeaders( )
 
     return Status::SWITCHING_PROTOCOLS;
 }
+
+} // namespace websocket

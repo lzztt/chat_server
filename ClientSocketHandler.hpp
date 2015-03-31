@@ -17,13 +17,15 @@
 #include "SocketOutStream.hpp"
 #include "MessageHandler.hpp"
 
-class WebSocketServerApp;
+namespace websocket {
+
+class ServerApp;
 
 class ClientSocketHandler
 {
-    friend class WebSocketServerApp;
+    friend class ServerApp;
 public:
-    explicit ClientSocketHandler(WebSocketServerApp* pServerApp);
+    explicit ClientSocketHandler(ServerApp* pServerApp);
 
     ClientSocketHandler(const ClientSocketHandler& other) = delete;
     ClientSocketHandler& operator=(const ClientSocketHandler& other) = delete;
@@ -68,7 +70,7 @@ private:
         ~Stream() = default;
 
         void init();
-        void open(WebSocketServerApp* pServerApp, int socket);
+        void open(ServerApp* pServerApp, int socket);
         void close();
 
         SocketInStream in;
@@ -78,8 +80,10 @@ private:
     };
     
     std::vector<Stream> streams;
-    WebSocketServerApp* pServerApp;
+    ServerApp* pServerApp;
 };
+
+} // namespace websocket
 
 #endif	/* CLIENTSOCKETHANDLER_HPP */
 

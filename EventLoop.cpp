@@ -14,6 +14,8 @@
 #include "Exception.hpp"
 #include "Log.hpp"
 
+namespace websocket {
+
 EventLoop::EventLoop( ) :
 fd( ::epoll_create1( 0 ) ),
 currentEventFd( 0 )
@@ -179,3 +181,5 @@ void EventLoop::stop( )
     ::close( fd );
     fd = -1;
 }
+
+} // namespace websocket

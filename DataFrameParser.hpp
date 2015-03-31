@@ -18,6 +18,8 @@
 #define WS_OPCODE_PING         9
 #define WS_OPCODE_PONG         10
 
+namespace websocket {
+
 class DataFrameParser
 {
 public:
@@ -80,6 +82,8 @@ private:
     std::unique_ptr<unsigned char[] > myData;
     size_t myDataLength;
 };
+
+} // namespace websocket
 
 #endif	/* DATAFRAMEPARSER_HPP */
 

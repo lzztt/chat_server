@@ -11,6 +11,8 @@
 #include "DataFrameParser.hpp"
 #include "Log.hpp"
 
+namespace websocket {
+
 namespace
 {
 
@@ -326,3 +328,4 @@ size_t DataFrameParser::getData( std::unique_ptr<unsigned char[]>& pData )
     }
 }
 
+} // namespace websocket

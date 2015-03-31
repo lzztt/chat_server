@@ -11,6 +11,8 @@
 #include "MessageHandler.hpp"
 #include "HandshakeParser.hpp"
 
+namespace websocket {
+
 class HandshakeHandler : public MessageHandler
 {
 public:
@@ -35,6 +37,8 @@ private:
 
     HandshakeParser myParser;
 };
+
+} // namespace websocket
 
 #endif	/* HANDSHAKEHANDLER_HPP */
 

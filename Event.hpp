@@ -10,6 +10,8 @@
 
 #include <functional>
 
+namespace websocket {
+
 class Event
 {
     friend class EventLoop;
@@ -39,5 +41,6 @@ private:
     handler_t handler;
 };
 
-#endif	/* EVENT_HPP */
+} // namespace websocket
 
+#endif	/* EVENT_HPP */

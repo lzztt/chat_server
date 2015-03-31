@@ -9,18 +9,20 @@
 #include <sys/socket.h>
 
 #include "ClientSocketHandler.hpp"
-#include "WebSocketServerApp.hpp"
+#include "ServerApp.hpp"
 #include "Log.hpp"
 #include "HandshakeHandler.hpp"
 #include "DataFrameHandler.hpp"
 
+namespace websocket {
+    
 void ClientSocketHandler::Stream::init( )
 {
     state = State::CONNECTING;
     handler = std::unique_ptr<MessageHandler>(dynamic_cast<MessageHandler*> (new HandshakeHandler( )));
 }
 
-void ClientSocketHandler::Stream::open( WebSocketServerApp* pServerApp, int socket )
+void ClientSocketHandler::Stream::open( ServerApp* pServerApp, int socket )
 {
     // OPENING: handshake finished
     state = State::OPEN;
@@ -38,7 +40,7 @@ void ClientSocketHandler::Stream::close( )
     }
 }
 
-ClientSocketHandler::ClientSocketHandler( WebSocketServerApp* pServerApp ) :
+ClientSocketHandler::ClientSocketHandler( ServerApp* pServerApp ) :
 pServerApp( pServerApp )
 {
 #ifdef DEBUG
@@ -251,3 +253,4 @@ void ClientSocketHandler::onSend( const Event& ev )
     }
 }
 
+} // namespace websocket

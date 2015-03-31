@@ -12,13 +12,15 @@
 
 #include "MessageHandler.hpp"
 #include "DataFrameParser.hpp"
-#include "WebSocketServerApp.hpp"
+#include "ServerApp.hpp"
+
+namespace websocket {
 
 class DataFrameHandler : public MessageHandler
 {
 public:
 
-    explicit DataFrameHandler(WebSocketServerApp* pServerApp, int clientID) :
+    explicit DataFrameHandler(ServerApp* pServerApp, int clientID) :
     pServerApp(pServerApp),
     myClientID(clientID),
     myMessageType(Type::NONE)
@@ -51,7 +53,7 @@ private:
         BINARY
     };
 
-    WebSocketServerApp* pServerApp;
+    ServerApp* pServerApp;
     int myClientID;
 
     DataFrameParser myParser;
@@ -61,6 +63,8 @@ private:
 
 
 };
+
+} // namespace websocket
 
 #endif	/* DATAFRAMEHANDLER_HPP */
 

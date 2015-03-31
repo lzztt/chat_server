@@ -13,11 +13,13 @@
 #include <vector>
 #include <utility>
 
-class WebSocketServerApp;
+namespace websocket {
+
+class ServerApp;
 
 class SocketOutStream
 {
-    friend class WebSocketServerApp;
+    friend class ServerApp;
 
 public:
 
@@ -156,6 +158,8 @@ private:
 
     std::deque<Buffer> buffers;
 };
+
+} // namespace websocket
 
 #endif	/* SOCKETOUTSTREAM_HPP */
 

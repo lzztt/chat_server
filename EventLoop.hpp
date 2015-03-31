@@ -12,6 +12,8 @@
 
 #include "Event.hpp"
 
+namespace websocket {
+
 class EventLoop
 {
 public:
@@ -36,5 +38,6 @@ private:
     std::unordered_map<int, Event> events;
 };
 
-#endif	/* EVENTLOOP_HPP */
+} // namespace websocket
 
+#endif	/* EVENTLOOP_HPP */

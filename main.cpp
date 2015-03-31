@@ -8,15 +8,15 @@
 #include <string>
 #include <algorithm>
 
-#include "WebSocketServerApp.hpp"
+#include "ServerApp.hpp"
 #include "Log.hpp"
 
-class EchoServerApp : public WebSocketServerApp
+class EchoServerApp : public websocket::ServerApp
 {
 public:
 
     EchoServerApp( ) :
-    WebSocketServerApp( )
+    websocket::ServerApp( )
     {
     }
 

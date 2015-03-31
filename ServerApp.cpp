@@ -1,5 +1,5 @@
 /* 
- * File:   Server.cpp
+ * File:   ServerApp.cpp
  * Author: ikki
  * 
  * Created on February 20, 2015, 8:50 PM
@@ -10,18 +10,20 @@
 #include <unistd.h>
 #include <cstring>
 
-#include "WebSocketServerApp.hpp"
+#include "ServerApp.hpp"
 #include "ServerSocket.hpp"
 #include "EventLoop.hpp"
 #include "Log.hpp"
 
-WebSocketServerApp::WebSocketServerApp( ) :
+namespace websocket {
+    
+ServerApp::ServerApp( ) :
 myClientHandler( ClientSocketHandler( this ) ),
 myMessageQueueEventFd( ::eventfd( 0, EFD_NONBLOCK ) )
 {
 }
 
-void WebSocketServerApp::run( )
+void ServerApp::run( )
 {
     ServerSocket s( 8080, &myEventLoop, &myClientHandler );
 
@@ -33,7 +35,7 @@ void WebSocketServerApp::run( )
     myEventLoop.run( );
 }
 
-void WebSocketServerApp::myMessageQueueEventHandler( const Event & ev )
+void ServerApp::myMessageQueueEventHandler( const Event & ev )
 {
     // lock for out
     std::lock_guard<std::mutex> lock( myMessageQueueMutex );
@@ -118,56 +120,56 @@ void WebSocketServerApp::myMessageQueueEventHandler( const Event & ev )
 
 }
 
-void WebSocketServerApp::close( int clientID )
+void ServerApp::close( int clientID )
 {
     myClientHandler.close( clientID );
 }
 
 // copy message
 
-void WebSocketServerApp::send( std::string msg, int clientID )
+void ServerApp::send( std::string msg, int clientID )
 {
     mySend( std::move( msg ), std::vector<int>(1, clientID) );
 }
 
-void WebSocketServerApp::send( std::vector<unsigned char> msg, int clientID )
+void ServerApp::send( std::vector<unsigned char> msg, int clientID )
 {
     mySend( std::move( msg ), std::vector<int>(1, clientID) );
 }
 
-void WebSocketServerApp::send( std::string msg, std::vector<int> clientIDs )
+void ServerApp::send( std::string msg, std::vector<int> clientIDs )
 {
     if ( !clientIDs.empty( ) ) mySend( std::move( msg ), std::move( clientIDs ) );
 }
 
-void WebSocketServerApp::send( std::vector<unsigned char> msg, std::vector<int> clientIDs )
+void ServerApp::send( std::vector<unsigned char> msg, std::vector<int> clientIDs )
 {
     if ( !clientIDs.empty( ) ) mySend( std::move( msg ), std::move( clientIDs ) );
 }
 
 // move message
 
-void WebSocketServerApp::send( std::string&& msg, int clientID )
+void ServerApp::send( std::string&& msg, int clientID )
 {
     mySend( std::move( msg ), std::vector<int>(1, clientID) );
 }
 
-void WebSocketServerApp::send( std::vector<unsigned char>&& msg, int clientID )
+void ServerApp::send( std::vector<unsigned char>&& msg, int clientID )
 {
     mySend( std::move( msg ), std::vector<int>(1, clientID) );
 }
 
-void WebSocketServerApp::send( std::string&& msg, std::vector<int> clientIDs )
+void ServerApp::send( std::string&& msg, std::vector<int> clientIDs )
 {
     if ( !clientIDs.empty( ) ) mySend( std::move( msg ), std::move( clientIDs ) );
 }
 
-void WebSocketServerApp::send( std::vector<unsigned char>&& msg, std::vector<int> clientIDs )
+void ServerApp::send( std::vector<unsigned char>&& msg, std::vector<int> clientIDs )
 {
     if ( !clientIDs.empty( ) ) mySend( std::move( msg ), std::move( clientIDs ) );
 }
 
-void WebSocketServerApp::mySend( std::string&& msg, std::vector<int>&& clientIDs )
+void ServerApp::mySend( std::string&& msg, std::vector<int>&& clientIDs )
 {
     std::lock_guard<std::mutex> lock( myMessageQueueMutex );
 #ifdef DEBUG
@@ -182,7 +184,7 @@ void WebSocketServerApp::mySend( std::string&& msg, std::vector<int>&& clientIDs
     }
 }
 
-void WebSocketServerApp::mySend( std::vector<unsigned char>&& msg, std::vector<int>&& clientIDs )
+void ServerApp::mySend( std::vector<unsigned char>&& msg, std::vector<int>&& clientIDs )
 {
     std::lock_guard<std::mutex> lock( myMessageQueueMutex );
 #ifdef DEBUG
@@ -196,3 +198,5 @@ void WebSocketServerApp::mySend( std::vector<unsigned char>&& msg, std::vector<i
         LOG_ERROR << "failed to write message queue event: " << std::strerror( errno );
     }
 }
+
+} // namespace websocket

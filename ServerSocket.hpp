@@ -14,6 +14,8 @@
 #include "ClientSocketHandler.hpp"
 #include "EventLoop.hpp"
 
+namespace websocket {
+
 class ServerSocket
 {
 public:
@@ -36,6 +38,8 @@ private:
     EventLoop* pEventLoop;
     ClientSocketHandler* pClientHandler;
 };
+
+} // namespace websocket
 
 #endif	/* SERVERSOCKET_HPP */
 

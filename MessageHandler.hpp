@@ -11,6 +11,8 @@
 #include "SocketInStream.hpp"
 #include "SocketOutStream.hpp"
 
+namespace websocket {
+
 class MessageHandler
 {
 public:
@@ -34,6 +36,8 @@ public:
 
     virtual Status process(SocketInStream& in, SocketOutStream& out) = 0;
 };
+
+} // namespace websocket
 
 #endif	/* MESSAGEHANDLER_HPP */
 

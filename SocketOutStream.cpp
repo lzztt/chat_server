@@ -14,6 +14,8 @@
 #include "SocketOutStream.hpp"
 #include "Log.hpp"
 
+namespace websocket {
+
 SocketOutStream::Buffer::Buffer( std::string&& str ) :
 data( Data( std::move( str ) ) ),
 offset( 0 )
@@ -192,3 +194,5 @@ ssize_t SocketOutStream::send( const int socket )
 #endif
     return nSend;
 }
+
+} // namespace websocket

@@ -185,6 +185,8 @@ namespace
     }
 }
 
+namespace websocket {
+
 ServerSocket::ServerSocket( const int port, EventLoop* pEventLoop, ClientSocketHandler* pClientHander ) :
 pEventLoop( pEventLoop ),
 pClientHandler( pClientHander )
@@ -326,3 +328,4 @@ void ServerSocket::onConnect( const Event& ev )
     }
 }
 
+} // namespace websocket
