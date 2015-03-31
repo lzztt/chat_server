@@ -8,7 +8,7 @@
 #include <string>
 #include <algorithm>
 
-#include "ServerApp.hpp"
+#include "websocket/ServerApp.hpp"
 #include "Log.hpp"
 
 class EchoServerApp : public websocket::ServerApp
