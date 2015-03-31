@@ -33,7 +33,7 @@ public:
         unsigned int payload : 7;
     };
 
-    enum class Status : int
+    enum class Status
     {
         PARSING,
         SUCCESS,
@@ -64,7 +64,7 @@ public:
 
 private:
 
-    enum class State : int
+    enum class State
     {
         HEADER,
         PAYLOAD,

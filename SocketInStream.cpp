@@ -86,13 +86,13 @@ size_t SocketInStream::Buffer::getFreeCapacity( ) const
     return pData + BUFSIZE - pEnd;
 }
 
-void SocketInStream::Buffer::pop_front( off_t count )
+void SocketInStream::Buffer::pop_front( size_t count )
 {
     pBegin += count;
     if ( pBegin > pEnd ) pBegin = pEnd;
 }
 
-void SocketInStream::Buffer::push_back( off_t count )
+void SocketInStream::Buffer::push_back( size_t count )
 {
     pEnd += count;
     if ( pEnd > pData + BUFSIZE ) pEnd = pData + BUFSIZE;
@@ -195,7 +195,7 @@ size_t SocketInStream::getData( const unsigned char** ppBuffer )
     }
 }
 
-void SocketInStream::pop_front( off_t count )
+void SocketInStream::pop_front( size_t count )
 {
     if ( count >= mySize )
     {

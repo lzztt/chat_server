@@ -61,7 +61,7 @@ public:
 
     ssize_t recv(const int socket);
     size_t getData(const unsigned char** ppBuffer);
-    void pop_front(off_t count);
+    void pop_front(size_t count);
     bool extract(unsigned char* buf, size_t count);
     bool maskExtract(unsigned char* buf, size_t count, const unsigned char* mask, size_t maskCount, size_t maskStart);
 
@@ -80,8 +80,8 @@ private:
 
         size_t getDataSize() const;
         size_t getFreeCapacity() const;
-        void pop_front(off_t count);
-        void push_back(off_t count);
+        void pop_front(size_t count);
+        void push_back(size_t count);
         size_t getReadableBuffer(const unsigned char** ppBuf) const;
         size_t getWritableBuffer(unsigned char** ppBuf) const;
         void clear();

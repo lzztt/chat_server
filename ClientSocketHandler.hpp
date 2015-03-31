@@ -47,7 +47,7 @@ private:
     {
     public:
 
-        enum class State : int
+        enum class State
         {
             CONNECTING,
             OPEN,

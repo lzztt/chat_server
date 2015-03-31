@@ -26,7 +26,7 @@ public:
         friend class SocketOutStream;
     public:
 
-        enum class Type : int
+        enum class Type
         {
             TEXT,
             BINARY,

@@ -20,7 +20,7 @@ class HandshakeParser
     
 public:
     // HTTP response status
-    enum class Status : int
+    enum class Status
     {
         PARSING = 0,
         SWITCHING_PROTOCOLS = 101,
@@ -54,7 +54,7 @@ public:
 
 private:
 
-    enum class State : int
+    enum class State
     {
         METHOD,
         URI,

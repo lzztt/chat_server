@@ -75,8 +75,10 @@ ClientSocketHandler::~ClientSocketHandler( )
 
 bool ClientSocketHandler::add( int socket )
 {
+    if ( socket < 0 ) return false;
+
     // fill streams till the socket element
-    if ( streams.size( ) < socket + 1 )
+    if ( streams.size( ) < static_cast<unsigned int> (socket + 1) )
     {
         streams.resize( socket + 1 );
     }
@@ -110,8 +112,11 @@ bool ClientSocketHandler::add( int socket )
 
 void ClientSocketHandler::close( int socket )
 {
-    pServerApp->myEventLoop.unregisterEvent( Event( socket, 0, Event::dummyEventHandler ) );
-    if( socket < streams.size() ) streams[socket].close( );
+    if ( socket > 0 )
+    {
+        pServerApp->myEventLoop.unregisterEvent( Event( socket, 0, Event::dummyEventHandler ) );
+        if ( static_cast<unsigned int> (socket) < streams.size( ) ) streams[socket].close( );
+    }
 }
 
 void ClientSocketHandler::onError( const Event& ev )

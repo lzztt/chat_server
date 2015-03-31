@@ -15,7 +15,7 @@ class MessageHandler
 {
 public:
 
-    enum class Status : int
+    enum class Status
     {
         PARSING,
         SUCCESS,

@@ -44,7 +44,7 @@ private:
     void mySendCloseFrame(SocketOutStream& out);
     void mySendPongFrame(SocketOutStream& out);
 
-    enum class Type : int
+    enum class Type
     {
         NONE,
         TEXT,

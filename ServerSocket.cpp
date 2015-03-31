@@ -18,7 +18,7 @@
 
 namespace
 {
-    static const int BACKLOG = 120;
+#define BACKLOG 120
 
     void myClose( const int socket )
     {
@@ -249,8 +249,8 @@ void ServerSocket::onConnect( const Event& ev )
     /* We have a notification on the listening socket, which
      * means one or more incoming connections. 
      */
-    static const int HOSTSIZE = 40; // 39 charactors for IPv6
-    static const int SERVSIZE = 6; // unsigned short
+#define HOSTSIZE 40 // 39 charactors for IPv6
+#define SERVSIZE 6 // unsigned short
 
     sockaddr addrClient = {0};
     socklen_t addrLen = sizeof addrClient;

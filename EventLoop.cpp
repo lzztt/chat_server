@@ -95,7 +95,7 @@ bool EventLoop::unregisterEvent( const Event& ev ) noexcept
 
 void EventLoop::run( ) noexcept
 {
-    static const int MAXEVENTS = 64;
+#define MAXEVENTS 64
 
     if ( fd == -1 )
     {
