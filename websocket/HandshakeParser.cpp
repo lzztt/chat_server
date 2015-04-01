@@ -6,6 +6,7 @@
  */
 
 #include <cctype>
+#include <algorithm>
 
 #include "HandshakeParser.hpp"
 #include "Log.hpp"
@@ -94,7 +95,11 @@ HandshakeParser::Status HandshakeParser::parse( SocketInStream& in )
 
                 if ( myStatus == Status::PARSING )
                 {
-                    if ( pData == pBegin )
+                    if ( pData != pBegin )
+                    {
+                        myUri.append( pBegin, pData - pBegin );
+                    }
+                    else
                     {
                         // empty URI
                         // 400 bad request
@@ -102,10 +107,6 @@ HandshakeParser::Status HandshakeParser::parse( SocketInStream& in )
                         myStatus = Status::BAD_REQUEST;
                         in.clear( );
                         nLeft = 0;
-                    }
-                    else
-                    {
-                        myUri.append( pBegin, pData - pBegin );
                     }
                 }
 
@@ -127,26 +128,28 @@ HandshakeParser::Status HandshakeParser::parse( SocketInStream& in )
 
                 if ( nLeft > 0 )
                 {
-                    if ( myHttpVersion != "HTTP/1.1" )
+                    if ( myHttpVersion == "HTTP/1.1" )
+                    {
+                        if ( nLeft >= 2 )
+                        {
+                            pData += 2;
+                            nLeft -= 2;
+                            myState = State::HEADER_NAME;
+                        }
+                        else
+                        {
+                            // '\r' is at buffer end
+                            myState = State::CRLF;
+                            nLeft = 0;
+                        }
+                    }
+                    else
                     {
                         // 400 bad request
                         // log bad HTTP version
                         LOG_ERROR << "HTTP version not supported";
                         myStatus = Status::HTTP_VERSION_NOT_SUPPORTED;
                         in.clear( );
-                        nLeft = 0;
-                    }
-
-                    if ( nLeft >= 2 )
-                    {
-                        pData += 2;
-                        nLeft -= 2;
-                        myState = State::HEADER_NAME;
-                    }
-                    else
-                    {
-                        // '\r' is at buffer end
-                        myState = State::CRLF;
                         nLeft = 0;
                     }
                 }
@@ -194,18 +197,18 @@ HandshakeParser::Status HandshakeParser::parse( SocketInStream& in )
                     pUpper = const_cast<char*> (pData);
                     for (; nLeft > 0 && *pData != ':'; ++pData, ++pUpper, --nLeft )
                     {
-                        if ( *pData == '\r' || *pData == '\n' )
+                        if ( *pData != '\r' && *pData != '\n' )
+                        {
+                            // convert to upper case
+                            *pUpper = ::toupper( *pData );
+                        }
+                        else
                         {
                             // 400 bad request
                             LOG_ERROR << "bad request: unexpected end of line";
                             myStatus = Status::BAD_REQUEST;
                             in.clear( );
                             nLeft = 0;
-                        }
-                        else
-                        {
-                            // convert to upper case
-                            *pUpper = std::toupper( *pData );
                         }
                     }
 
@@ -389,7 +392,10 @@ HandshakeParser::Status HandshakeParser::myValidateHeaders( )
     }
     else
     {
-        if ( iter->second.find( "websocket" ) == iter->second.npos )
+        // UPGRADE case-insensitive value, convert to lower case
+        auto& value = iter->second;
+        std::transform( value.begin( ), value.end( ), value.begin( ), ::tolower );
+        if ( value.find( "websocket" ) == value.npos )
         {
             LOG_ERROR << "|Upgrade| header does not contains \"websocket\"";
             return Status::BAD_REQUEST;
@@ -405,7 +411,10 @@ HandshakeParser::Status HandshakeParser::myValidateHeaders( )
     }
     else
     {
-        if ( iter->second.find( "Upgrade" ) == iter->second.npos )
+        // UPGRADE case-insensitive value, convert to lower case
+        auto& value = iter->second;
+        std::transform( value.begin( ), value.end( ), value.begin( ), ::tolower );
+        if ( value.find( "upgrade" ) == value.npos )
         {
             LOG_ERROR << "|Connection| header does not contains \"Upgrade\"";
             return Status::BAD_REQUEST;

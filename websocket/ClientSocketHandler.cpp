@@ -134,8 +134,9 @@ void ClientSocketHandler::onError( const Event& ev )
         pServerApp->myEventLoop.unregisterEvent( ev );
     }
 
-    streams[socket].close( );
-    pServerApp->onClose( socket );
+    if( streams[socket].state == Stream::State::OPEN ) pServerApp->onClose( socket );
+    
+    streams[socket].close( );    
 }
 
 void ClientSocketHandler::onRecv( const Event& ev )
