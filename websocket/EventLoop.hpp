@@ -1,6 +1,6 @@
-/* 
+/*
  * File:   EventLoop.hpp
- * Author: ikki
+ * Author: Long
  *
  * Created on February 17, 2015, 10:27 PM
  */

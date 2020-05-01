@@ -1,6 +1,6 @@
-/* 
+/*
  * File:   HandshakeHandler.hpp
- * Author: ikki
+ * Author: Long
  *
  * Created on March 11, 2015, 7:49 PM
  */
